@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import Api from "../../api/axios"; // Pastikan path ini benar sesuai struktur foldermu
+import Api from "../../api/axios"; 
 import Swal from "sweetalert2";
 
 const router = useRouter();
@@ -16,13 +16,11 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    // 1. Kirim Request Login
     const response = await Api.post("/login", {
       email: form.email,
       password: form.password,
     });
 
-    // 2. Cek apakah Backend mengirim Token & User
     const token = response.data.token;
     const user = response.data.user;
 
@@ -30,14 +28,11 @@ const handleLogin = async () => {
       throw new Error("Respon server tidak valid (Token/User hilang).");
     }
 
-    // 3. Simpan ke LocalStorage
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    // 4. Set Header Axios Default
     Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    // 5. Notifikasi Sukses
     await Swal.fire({
       icon: "success",
       title: "Login Berhasil!",
@@ -46,9 +41,8 @@ const handleLogin = async () => {
       showConfirmButton: false,
     });
 
-    // 6. Redirect Berdasarkan Role
     if (user.role === "admin") {
-      router.push({ name: "admin.dashboard" }); // name ini akan otomatis manggil '/admin/dashboard'
+      router.push({ name: "admin.dashboard" });
     } else if (user.role === "student") {
       router.push({ name: "student.dashboard" });
     } else {
@@ -56,11 +50,20 @@ const handleLogin = async () => {
       localStorage.clear();
     }
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error("Login Error Asli:", error); 
 
-    let message = "Email atau password salah.";
-    if (error.response?.data?.message) {
-      message = error.response.data.message;
+    let message = "Terjadi kesalahan yang tidak diketahui.";
+
+
+    if (error.response) {
+    
+      message = error.response.data?.message || `Server Error: ${error.response.status}`;
+    } else if (error.request) {
+      
+      message = "Gagal terhubung ke Server API. Cek koneksi atau konfigurasi CORS Anda.";
+    } else {
+    
+      message = "Error Internal Aplikasi: " + error.message;
     }
 
     Swal.fire({
