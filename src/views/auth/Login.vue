@@ -84,7 +84,7 @@ const handleLogin = async () => {
     <div
       class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20"
     >
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
         <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
           <svg
             xmlns="http://www.w3.org/2000/svg"
