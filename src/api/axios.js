@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const Api = axios.create({
   // Pastikan URL ini benar ke backend lu
-  baseURL: 'http://localhost:8000/api', 
+  baseURL: 'https://api.darulfikri.sch.id/api', 
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
