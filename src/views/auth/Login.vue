@@ -21,6 +21,7 @@ const handleLogin = async () => {
       password: form.password,
     });
 
+    // Sesuaikan dengan response JSON backend kita: { success, message, token, user }
     const token = response.data.token;
     const user = response.data.user;
 
@@ -36,46 +37,63 @@ const handleLogin = async () => {
     await Swal.fire({
       icon: "success",
       title: "Login Berhasil!",
-      text: `Selamat datang, ${user.name}`,
+      text: `Selamat datang kembali, ${user.name}`,
       timer: 1500,
       showConfirmButton: false,
     });
 
+    // Routing berdasarkan role
     if (user.role === "admin") {
       router.push({ name: "admin.dashboard" });
-    } else if (user.role === "student") {
-      router.push({ name: "student.dashboard" });
     } else {
-      Swal.fire("Error", "Role user tidak dikenali.", "error");
-      localStorage.clear();
+      router.push({ name: "student.dashboard" });
     }
+
   } catch (error) {
-    console.error("Login Error Asli:", error); 
+    console.error("Login Error Detail:", error.response);
 
-    let message = "Terjadi kesalahan yang tidak diketahui.";
-
+    let errorTitle = "Gagal Login";
+    let errorMessage = "Terjadi kesalahan pada server.";
 
     if (error.response) {
-    
-      message = error.response.data?.message || `Server Error: ${error.response.status}`;
-    } else if (error.request) {
+      const status = error.response.status;
+      const data = error.response.data;
+
+      if (status === 401) {
+        // Kasus: Email atau Password Salah
+        errorMessage = data.message || "Email atau password yang Anda masukkan salah.";
+      } 
+      else if (status === 422) {
+        // Kasus: Validasi Gagal (Email kosong, format salah, dsb)
+        errorTitle = "Validasi Gagal";
+        // Mengambil semua pesan error validasi dan menggabungnya jadi satu string
+        const validationErrors = data.errors 
+          ? Object.values(data.errors).flat().join("<br>") 
+          : "Data yang dikirim tidak valid.";
+        errorMessage = validationErrors;
+      } 
+      else if (status === 404) {
       
-      message = "Gagal terhubung ke Server API. Cek koneksi atau konfigurasi CORS Anda.";
-    } else {
-    
-      message = "Error Internal Aplikasi: " + error.message;
+        errorMessage = "Endpoint API tidak ditemukan. Hubungi developer!";
+      } 
+      else {
+        errorMessage = data.message || `Error ${status}: Hubungi admin.`;
+      }
+    } else if (error.request) {
+      errorMessage = "Tidak ada respon dari server. Cek koneksi internet atau status server VPS Anda.";
     }
 
     Swal.fire({
       icon: "error",
-      title: "Gagal Login",
-      text: message,
+      title: errorTitle,
+      html: errorMessage, 
+      confirmButtonColor: "#4f46e5", 
     });
+
   } finally {
     isLoading.value = false;
   }
-};
-</script>
+};</script>
 
 <template>
   <div
