@@ -21,9 +21,8 @@ const handleLogin = async () => {
       password: form.password,
     });
 
-    // Sesuaikan dengan response JSON backend kita: { success, message, token, user }
-    const token = response.data.token;
-    const user = response.data.user;
+    const token = response.data?.token;
+    const user = response.data?.user;
 
     if (!token || !user) {
       throw new Error("Respon server tidak valid (Token/User hilang).");
@@ -37,63 +36,67 @@ const handleLogin = async () => {
     await Swal.fire({
       icon: "success",
       title: "Login Berhasil!",
-      text: `Selamat datang kembali, ${user.name}`,
+      text: `Selamat datang kembali, ${user?.name || "User"}`,
       timer: 1500,
       showConfirmButton: false,
     });
 
-    // Routing berdasarkan role
     if (user.role === "admin") {
       router.push({ name: "admin.dashboard" });
     } else {
       router.push({ name: "student.dashboard" });
     }
-
   } catch (error) {
-    console.error("Login Error Detail:", error.response);
+    console.error("DEBUG ERROR API MENTAH:", error.response || error);
 
     let errorTitle = "Gagal Login";
-    let errorMessage = "Terjadi kesalahan pada server.";
+    let errorMessage = "Terjadi kesalahan pada sistem.";
 
     if (error.response) {
-      const status = error.response.status;
+      // PAKSA JADI ANGKA: Menghindari bug "422" (String) === 422 (Number)
+      const status = parseInt(error.response.status, 10);
       const data = error.response.data;
 
+      const serverMessage = data?.message || data?.error || data?.status || "";
+
       if (status === 401) {
-        // Kasus: Email atau Password Salah
-        errorMessage = data.message || "Email atau password yang Anda masukkan salah.";
-      } 
-      else if (status === 422) {
-        // Kasus: Validasi Gagal (Email kosong, format salah, dsb)
+        errorMessage = serverMessage || "Email atau password yang Anda masukkan salah.";
+      } else if (status === 422) {
         errorTitle = "Validasi Gagal";
-        // Mengambil semua pesan error validasi dan menggabungnya jadi satu string
-        const validationErrors = data.errors 
-          ? Object.values(data.errors).flat().join("<br>") 
-          : "Data yang dikirim tidak valid.";
-        errorMessage = validationErrors;
-      } 
-      else if (status === 404) {
-      
-        errorMessage = "Endpoint API tidak ditemukan. Hubungi developer!";
-      } 
-      else {
-        errorMessage = data.message || `Error ${status}: Hubungi admin.`;
+        if (data?.errors && typeof data.errors === 'object') {
+          // Ekstrak semua pesan error dari objek validasi Laravel
+          errorMessage = Object.values(data.errors).flat().join("<br>");
+        } else {
+          errorMessage = serverMessage || "Data yang dikirim tidak lengkap.";
+        }
+      } else if (status === 404) {
+        errorMessage = "Endpoint API tidak ditemukan di server. Cek rute Laravel Anda.";
+      } else if (status >= 500) {
+        errorMessage = "Terjadi kerusakan di dalam server (Error 500).";
+      } else {
+        errorMessage = serverMessage || `Terjadi Error Kode: ${status}`;
       }
     } else if (error.request) {
-      errorMessage = "Tidak ada respon dari server. Cek koneksi internet atau status server VPS Anda.";
+      errorMessage = "Server tidak merespon. Cek koneksi internet atau VPS mati.";
+    } else {
+      errorMessage = error.message || "Aplikasi frontend mengalami error internal.";
+    }
+        if (!errorMessage || errorMessage === "undefined") {
+        errorMessage = "Gagal mengekstrak pesan error. Silakan cek console F12.";
     }
 
-    Swal.fire({
+    await Swal.fire({
       icon: "error",
       title: errorTitle,
-      html: errorMessage, 
-      confirmButtonColor: "#4f46e5", 
+      html: errorMessage,
+      confirmButtonColor: "#4f46e5",
     });
-
   } finally {
     isLoading.value = false;
   }
-};</script>
+};
+
+</script>
 
 <template>
   <div
