@@ -47,23 +47,23 @@ const handleLogout = () => {
         </div>
 
         <RouterLink to="/admin/dashboard" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">📊</span> Dashboard
+            <span class="mr-3"></span> Dashboard
         </RouterLink>
         
         <RouterLink to="/admin/students" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">🎓</span> Data Siswa
+            <span class="mr-3"></span> Data Siswa
         </RouterLink>
 
         <RouterLink to="/admin/classrooms" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">🏫</span> Kelola Kelas
+            <span class="mr-3"></span> Kelola Kelas
         </RouterLink>
 
         <RouterLink to="/admin/fees" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">🏷️</span> Master Biaya
+            <span class="mr-3"></span> Master Biaya
         </RouterLink>
         
         <RouterLink to="/admin/bills" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">💰</span> Kelola Tagihan
+            <span class="mr-3"></span> Kelola Tagihan
         </RouterLink>
       </nav>
 
