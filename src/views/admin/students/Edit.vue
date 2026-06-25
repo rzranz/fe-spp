@@ -16,6 +16,7 @@ const form = ref({
   nis: '',
   name: '',
   class_id: '',
+  password: '',
   parent_name: '',
   phone_number: '',
   address: ''
@@ -109,6 +110,11 @@ const handleUpdate = async () => {
               {{ cls.name }}
             </option>
           </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Password Baru (Opsional)</label>
+          <input v-model="form.password" type="password" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Kosongkan jika tidak ingin diubah">
         </div>
 
         <div>

@@ -63,29 +63,29 @@ const handleLogout = () => {
           </svg>
         </button>
       </div>
-      
+      https://github.com/rzranz/fe-spp/pull/1/conflict?name=src%252Flayouts%252FAdminLayout.vue&ancestor_oid=6970d668916adb39fcc5948fbad78fef13f6bd4c&base_oid=ad7d6c93532e95066895765bfdf3382fb7ca20dd&head_oid=27cfd77bae221ce3ff33526c276d8cf8f3887692
       <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto custom-scrollbar">
         <div class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2 mt-2 px-2">
             Administrator
         </div>
 
-        <RouterLink @click="toggleSidebar" to="/admin/dashboard" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
-            <span class="mr-3">📊</span> Dashboard
+        <RouterLink to="/admin/dashboard" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
+            <span class="mr-3"></span> Dashboard
         </RouterLink>
         
-        <RouterLink @click="toggleSidebar" to="/admin/students" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
+        <RouterLink to="/admin/students" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
             <span class="mr-3"></span> Data Siswa
         </RouterLink>
 
-        <RouterLink @click="toggleSidebar" to="/admin/classrooms" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
+        <RouterLink to="/admin/classrooms" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
             <span class="mr-3"></span> Kelola Kelas
         </RouterLink>
 
-        <RouterLink @click="toggleSidebar" to="/admin/fees" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
+        <RouterLink to="/admin/fees" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
             <span class="mr-3"></span> Master Biaya
         </RouterLink>
         
-        <RouterLink @click="toggleSidebar" to="/admin/bills" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
+        <RouterLink to="/admin/bills" class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-indigo-700" active-class="bg-indigo-600 shadow-md">
             <span class="mr-3"></span> Kelola Tagihan
         </RouterLink>
       </nav>

@@ -51,7 +51,7 @@ const goToLogin = () => {
           </h1>
           
           <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-            Portal resmi administrasi keuangan TK Darul Fikri. Cek tagihan, lakukan pembayaran via QRIS, Virtual Account, atau Minimarket, dan pantau riwayat pelunasan secara real-time.
+            Portal resmi administrasi keuangan RA. Darul Fikri. Cek tagihan, lakukan pembayaran via QRIS, Virtual Account, atau Minimarket, dan pantau riwayat pelunasan secara real-time.
           </p>
           
           <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -106,7 +106,7 @@ const goToLogin = () => {
     </main>
 
     <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm border-t border-slate-800">
-      <p>&copy; 2026 TK Darul Fikri. Sistem Informasi Pembayaran.</p>
+      <p>&copy; 2026 RA. Darul Fikri. Sistem Informasi Pembayaran.</p>
     </footer>
   </div>
 </template>

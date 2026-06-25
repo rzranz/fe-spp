@@ -8,6 +8,7 @@ const Api = axios.create({
     'Accept': 'application/json'
   }
 })
+
 Api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {

@@ -1,4 +1,4 @@
-<script setup>
+<script setup>https://github.com/rzranz/fe-spp/pull/1/conflict?name=src%252Fviews%252Fauth%252FLogin.vue&ancestor_oid=d20074aa030ac220a51143736f5ed0be92f08f30&base_oid=3d4b352dd28a0d8ee457df59350e47beb532eb11&head_oid=7317e0dd3d7869f13794b1a2070c0d136a408224
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import Api from "../../api/axios"; 
