@@ -1,8 +1,8 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import Api from "../../api/axios"; // Pastikan path ini benar sesuai struktur foldermu
-import Swal from "sweetalert2";
+import Api from "../../api/axios";
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 const isLoading = ref(false);
@@ -16,57 +16,80 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    // 1. Kirim Request Login
     const response = await Api.post("/login", {
       email: form.email,
       password: form.password,
     });
 
-    // 2. Cek apakah Backend mengirim Token & User
-    const token = response.data.token;
-    const user = response.data.user;
+    const token = response.data?.token;
+    const user = response.data?.user;
 
     if (!token || !user) {
       throw new Error("Respon server tidak valid (Token/User hilang).");
     }
 
-    // 3. Simpan ke LocalStorage
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    // 4. Set Header Axios Default
     Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    // 5. Notifikasi Sukses
     await Swal.fire({
       icon: "success",
       title: "Login Berhasil!",
-      text: `Selamat datang, ${user.name}`,
+      text: `Selamat datang kembali, ${user?.name || "User"}`,
       timer: 1500,
       showConfirmButton: false,
     });
 
-    // 6. Redirect Berdasarkan Role
     if (user.role === "admin") {
-      router.push({ name: "admin.dashboard" }); // name ini akan otomatis manggil '/admin/dashboard'
-    } else if (user.role === "student") {
-      router.push({ name: "student.dashboard" });
+      router.push({ name: "admin.dashboard" });
     } else {
-      Swal.fire("Error", "Role user tidak dikenali.", "error");
-      localStorage.clear();
+      router.push({ name: "student.dashboard" });
     }
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error("DEBUG ERROR API MENTAH:", error.response || error);
 
-    let message = "Email atau password salah.";
-    if (error.response?.data?.message) {
-      message = error.response.data.message;
+    let errorTitle = "Gagal Login";
+    let errorMessage = "Terjadi kesalahan pada sistem.";
+
+    if (error.response) {
+      // PAKSA JADI ANGKA: Menghindari bug "422" (String) === 422 (Number)
+      const status = parseInt(error.response.status, 10);
+      const data = error.response.data;
+
+      const serverMessage = data?.message || data?.error || data?.status || "";
+
+      if (status === 401) {
+        errorMessage = serverMessage || "Email atau password yang Anda masukkan salah.";
+      } else if (status === 422) {
+        errorTitle = "Validasi Gagal";
+        if (data?.errors && typeof data.errors === 'object') {
+          // Ekstrak semua pesan error dari objek validasi Laravel
+          errorMessage = Object.values(data.errors).flat().join("<br>");
+        } else {
+          errorMessage = serverMessage || "Data yang dikirim tidak lengkap.";
+        }
+      } else if (status === 404) {
+        errorMessage = "Endpoint API tidak ditemukan di server. Cek rute Laravel Anda.";
+      } else if (status >= 500) {
+        errorMessage = "Terjadi kerusakan di dalam server (Error 500).";
+      } else {
+        errorMessage = serverMessage || `Terjadi Error Kode: ${status}`;
+      }
+    } else if (error.request) {
+      errorMessage = "Server tidak merespon. Cek koneksi internet atau VPS mati.";
+    } else {
+      errorMessage = error.message || "Aplikasi frontend mengalami error internal.";
+    }
+        if (!errorMessage || errorMessage === "undefined") {
+        errorMessage = "Gagal mengekstrak pesan error. Silakan cek console F12.";
     }
 
-    Swal.fire({
+    await Swal.fire({
       icon: "error",
-      title: "Gagal Login",
-      text: message,
+      title: errorTitle,
+      html: errorMessage,
+      confirmButtonColor: "#4f46e5",
     });
   } finally {
     isLoading.value = false;
