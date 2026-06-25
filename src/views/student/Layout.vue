@@ -5,15 +5,44 @@ import Api from '../../api/axios';
 
 const router = useRouter();
 
-const handleLogout = async () => {
-  try {
-    await Api.post('/logout');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
-  } catch (error) {
-    console.error('Logout error');
-  }
+const handleLogout = () => {
+  Swal.fire({
+    title: 'Keluar dari Sistem?',
+    text: "Anda harus login kembali untuk melihat tagihan.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        // Pasang loading biar UI gak freeze saat nembak backend
+        Swal.fire({
+          title: 'Sedang keluar...',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
+        });
+
+        await Api.post('/logout');
+        
+        // Bersihkan brankas lokal
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        Swal.close();
+        router.push('/login');
+      } catch (error) {
+        console.error('Logout error', error);
+        // Fallback: Kalau server down, tetap paksa user keluar secara lokal
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        Swal.close();
+        router.push('/login');
+      }
+    }
+  });
 };
 </script>
 

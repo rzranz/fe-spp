@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
 // --- PERBAIKAN PENTING DI SINI ---
 // Ubah dari "../../api" menjadi "../../api/axios"
@@ -36,8 +36,15 @@ const formatRupiah = (number) => {
   }).format(number);
 };
 
+let intervalId = null;
+
 onMounted(() => {
   fetchStats();
+  intervalId = setInterval(fetchStats, 5000); // Auto-refresh setiap 5 detik
+});
+
+onUnmounted(() => {
+  if (intervalId) clearInterval(intervalId);
 });
 </script>
 
