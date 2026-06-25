@@ -49,7 +49,7 @@ const router = createRouter({
         {
           path: "fees", 
           name: "fees.index",
-          component: () => import("../views/admin/fees/Index.vue"),
+          component: () => import("../views/admin/fees/index.vue"),
         },
         {
           path: "bills", 
