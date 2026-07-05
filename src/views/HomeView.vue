@@ -3,8 +3,8 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const goToLogin = () => {
-  router.push('/login');
+const goToLogin = (role) => {
+  router.push({ path: '/login', query: { role } });
 };
 </script>
 
@@ -16,16 +16,14 @@ const goToLogin = () => {
         <div class="flex justify-between items-center h-20">
           
           <div class="flex items-center gap-3">
-            <svg class="h-11 w-11 shadow-sm rounded-md" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <rect width="100" height="100" fill="#4ade80"/>
-              <circle cx="50" cy="50" r="42" fill="#facc15"/>
-              <text x="50" y="68" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="54" text-anchor="middle" fill="#111827" letter-spacing="-4">df</text>
-            </svg>
+            <div class="flex h-11 w-11 items-center justify-center rounded-md bg-white p-1 overflow-hidden shadow-sm">
+              <img src="/logo.png" alt="Logo Sekolah" class="w-full h-full object-contain" />
+            </div>
             <span class="text-xl font-extrabold text-slate-800 tracking-tight">RA. Darul Fikri</span>
           </div>
           
           <div>
-            <button @click="goToLogin" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-5 py-2.5 rounded-lg transition-colors border border-indigo-200">
+            <button @click="goToLogin('admin')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-5 py-2.5 rounded-lg transition-colors border border-indigo-200">
               Portal Admin
             </button>
           </div>
@@ -55,7 +53,7 @@ const goToLogin = () => {
           </p>
           
           <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-            <button @click="goToLogin" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg">
+            <button @click="goToLogin('student')" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg">
               Masuk Portal Wali Murid
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />

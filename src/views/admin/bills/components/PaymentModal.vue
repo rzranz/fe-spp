@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, computed } from "vue";
-import Api from "../../../../api/axios"; // Sesuaikan path axios lu
+import Api from "../../../../api/axios";
 import Swal from "sweetalert2";
 
 const props = defineProps({
@@ -16,15 +16,29 @@ const detailBill = ref(null);
 const amount = ref(null);
 const notes = ref("");
 
-const formatRupiah = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
+const formatRupiah = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+};
 
-// Hitung dinamis sisa tagihan
 const sisaTagihan = computed(() => {
   if (!detailBill.value) return 0;
   return detailBill.value.amount - detailBill.value.paid_amount;
 });
 
-// Ambil detail tagihan + history transaksi saat modal dibuka
+// Hanya transaksi sukses yang tampil (untuk kebersihan laporan admin)
+const successTransactions = computed(() => {
+  if (!detailBill.value?.transactions) return [];
+  return detailBill.value.transactions.filter(t => t.status === 'success');
+});
+
+// Transaksi pending (untuk info saja)
+const pendingTransactions = computed(() => {
+  if (!detailBill.value?.transactions) return [];
+  return detailBill.value.transactions.filter(t => t.status === 'pending');
+});
+
 const fetchBillDetail = async () => {
   if (!props.bill?.id) return;
   isLoading.value = true;
@@ -38,7 +52,6 @@ const fetchBillDetail = async () => {
   }
 };
 
-// Pantau perubahan props.show
 watch(() => props.show, (newVal) => {
   if (newVal) {
     amount.value = null;
@@ -56,7 +69,6 @@ const handleBayar = () => {
   if (amount.value > sisaTagihan.value) {
     return Swal.fire("Error", "Nominal melebihi sisa tagihan", "error");
   }
-  
   emit("submit", {
     bill_id: detailBill.value.id,
     amount: amount.value,
@@ -64,7 +76,6 @@ const handleBayar = () => {
   });
 };
 
-// FUNGSI DOWNLOAD PDF
 const downloadReceipt = async (transaction) => {
   try {
     Swal.fire({
@@ -73,20 +84,16 @@ const downloadReceipt = async (transaction) => {
       allowOutsideClick: false,
       didOpen: () => { Swal.showLoading(); }
     });
-
     const response = await Api.get(`/admin/transactions/${transaction.id}/receipt`, {
-      responseType: 'blob' // Wajib agar axios menerima file fisik
+      responseType: 'blob'
     });
-
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `Kwitansi_${transaction.invoice_number}.pdf`);
-    
     document.body.appendChild(link);
     link.click();
     link.remove();
-    
     Swal.close();
   } catch (error) {
     console.error(error);
@@ -94,20 +101,21 @@ const downloadReceipt = async (transaction) => {
   }
 };
 
-// FUNGSI PEMBATALAN TRANSAKSI
 const batalkanTransaksi = async (transactionId) => {
   Swal.fire({
-    title: "Batalkan Cicilan?",
-    text: "Uang yang sudah masuk akan ditarik kembali.",
+    title: "Batalkan Transaksi?",
+    text: "Pembayaran ini akan dibatalkan dan saldo tagihan dikembalikan.",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#d33",
+    confirmButtonColor: "#ef4444",
+    cancelButtonText: "Batal",
+    confirmButtonText: 'Ya, Batalkan',
   }).then(async (result) => {
     if (result.isConfirmed) {
       isCanceling.value = true;
       try {
         await Api.delete(`/admin/transactions/${transactionId}`);
-        Swal.fire("Berhasil", "Cicilan dibatalkan.", "success");
+        Swal.fire("Berhasil", "Transaksi dibatalkan.", "success");
         await fetchBillDetail();
         emit("refresh"); 
       } catch (error) {
@@ -122,97 +130,169 @@ const batalkanTransaksi = async (transactionId) => {
 
 <template>
   <div v-if="show" class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="flex items-center justify-center min-h-screen p-4">
       
-      <div class="fixed inset-0 transition-opacity" aria-hidden="true" @click="emit('close')">
-        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-      </div>
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" @click="emit('close')"></div>
 
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          
-          <div v-if="isLoading" class="text-center py-10">Memuat detail data...</div>
+      <!-- Modal Card -->
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        
+        <!-- Loading -->
+        <div v-if="isLoading" class="flex items-center justify-center py-20 text-slate-500">
+          <svg class="animate-spin h-8 w-8 text-indigo-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Memuat data...
+        </div>
 
-          <div v-else-if="detailBill">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 border-b pb-3 mb-4">
-              Detail & Pembayaran: {{ detailBill.student?.user?.name }}
-            </h3>
+        <div v-else-if="detailBill">
 
-            <div class="grid grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-md">
+          <!-- Header Modal -->
+          <div class="px-6 pt-6 pb-5 border-b border-slate-100">
+            <div class="flex items-start justify-between">
               <div>
-                <p class="text-xs text-gray-500 uppercase">Total Tagihan</p>
-                <p class="font-bold text-gray-900">{{ formatRupiah(detailBill.amount) }}</p>
+                <h3 class="text-lg font-bold text-slate-800">Detail Tagihan</h3>
+                <p class="text-slate-500 text-sm mt-0.5">{{ detailBill.student?.user?.name }} &middot; {{ detailBill.student?.classroom?.name }}</p>
               </div>
-              <div>
-                <p class="text-xs text-gray-500 uppercase">Sisa yang harus dibayar</p>
-                <p class="font-bold text-red-600 text-lg">{{ formatRupiah(sisaTagihan) }}</p>
+              <span :class="[
+                'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                detailBill.status === 'paid' ? 'bg-green-100 text-green-700' :
+                detailBill.status === 'partial' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-red-100 text-red-700'
+              ]">
+                {{ detailBill.status === 'paid' ? '✓ Lunas' : detailBill.status === 'partial' ? '⏳ Dicicil' : '✗ Belum Bayar' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+            <!-- Ringkasan Tagihan -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                <p class="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Total Tagihan</p>
+                <p class="font-bold text-slate-800 text-base">{{ formatRupiah(detailBill.amount) }}</p>
+              </div>
+              <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                <p class="text-xs text-green-600 font-medium uppercase tracking-wide mb-1">Sudah Dibayar</p>
+                <p class="font-bold text-green-700 text-base">{{ formatRupiah(detailBill.paid_amount) }}</p>
+              </div>
+              <div :class="['rounded-xl p-4 border', sisaTagihan > 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100']">
+                <p :class="['text-xs font-medium uppercase tracking-wide mb-1', sisaTagihan > 0 ? 'text-red-500' : 'text-green-600']">Sisa Tagihan</p>
+                <p :class="['font-bold text-base', sisaTagihan > 0 ? 'text-red-700' : 'text-green-700']">{{ formatRupiah(sisaTagihan) }}</p>
               </div>
             </div>
 
-            <form v-if="sisaTagihan > 0" @submit.prevent="handleBayar" class="mb-8 p-4 border rounded-md border-indigo-100 bg-indigo-50/30">
-              <h4 class="font-semibold text-sm mb-3">Input Cicilan Baru</h4>
+            <!-- Form Bayar (jika belum lunas) -->
+            <form v-if="sisaTagihan > 0" @submit.prevent="handleBayar" class="bg-indigo-50 border border-indigo-100 rounded-xl p-5">
+              <h4 class="font-semibold text-slate-700 text-sm mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Catat Pembayaran Baru
+              </h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-700">Nominal (Rp)</label>
-                  <input v-model.number="amount" type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Cth: 50000" required>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
+                  <input v-model.number="amount" type="number" 
+                    class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                    :placeholder="`Maks. ${formatRupiah(sisaTagihan)}`" required
+                  >
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-700">Catatan (Opsional)</label>
-                  <input v-model="notes" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Cth: Titipan Ibu">
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">Catatan (Opsional)</label>
+                  <input v-model="notes" type="text" 
+                    class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                    placeholder="Cth: Bayar tunai di sekolah"
+                  >
                 </div>
               </div>
-              <button type="submit" class="mt-4 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-bold text-sm">
-                Bayar Sekarang
+              <button type="submit" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                Simpan Pembayaran
               </button>
             </form>
 
-            <div v-else class="mb-8 p-4 bg-green-100 text-green-800 text-center font-bold rounded-md">
-              TAGIHAN INI SUDAH LUNAS
+            <!-- Sudah Lunas Banner -->
+            <div v-else class="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-green-800 text-sm">Tagihan Ini Telah Lunas</p>
+                <p class="text-green-600 text-xs">Semua kewajiban pembayaran sudah terpenuhi.</p>
+              </div>
             </div>
 
-            <h4 class="font-semibold text-sm mb-2">Riwayat Pembayaran</h4>
-            <div class="overflow-x-auto border rounded-md">
-              <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Tanggal</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Nominal</th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Catatan</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  <tr v-for="trx in detailBill.transactions" :key="trx.id">
-                    <td class="px-4 py-2">{{ new Date(trx.created_at).toLocaleDateString('id-ID') }}</td>
-                    <td class="px-4 py-2 font-semibold text-green-600">{{ formatRupiah(trx.amount) }}</td>
-                    <td class="px-4 py-2 text-xs text-gray-500">{{ trx.description || '-' }}</td>
-                    <td class="px-4 py-2 text-center">
-                      <div class="flex justify-center gap-2">
-                        <button @click="downloadReceipt(trx)" type="button" class="text-xs text-indigo-600 hover:text-indigo-900 border border-indigo-200 px-2 py-1 rounded bg-indigo-50 font-semibold">
-                          🖨️ Cetak PDF
-                        </button>
-                        
-                        <button @click="batalkanTransaksi(trx.id)" :disabled="isCanceling" type="button" class="text-xs text-red-600 hover:text-red-900 border border-red-200 px-2 py-1 rounded bg-red-50 disabled:opacity-50 font-semibold">
-                          Batalkan
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="!detailBill.transactions || detailBill.transactions.length === 0">
-                    <td colspan="4" class="px-4 py-2 text-center text-gray-500 text-xs">Belum ada cicilan masuk.</td>
-                  </tr>
-                </tbody>
-              </table>
+            <!-- Riwayat Transaksi (Sukses) -->
+            <div>
+              <h4 class="font-semibold text-slate-700 text-sm mb-3 flex items-center justify-between">
+                <span>Riwayat Pembayaran</span>
+                <span class="text-xs font-normal text-slate-400">{{ successTransactions.length }} transaksi berhasil</span>
+              </h4>
+
+              <div v-if="successTransactions.length === 0" class="text-center py-8 text-slate-400 text-sm bg-slate-50 rounded-xl border border-slate-100">
+                Belum ada pembayaran yang berhasil dicatat.
+              </div>
+
+              <div v-else class="space-y-2">
+                <div v-for="trx in successTransactions" :key="trx.id" 
+                  class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-colors shadow-sm"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-800">{{ formatRupiah(trx.amount) }}</p>
+                      <p class="text-xs text-slate-400 font-mono">{{ trx.invoice_number }}</p>
+                      <p class="text-xs text-slate-500">{{ formatDate(trx.paid_at) }} &middot; {{ trx.payment_method?.replace('_', ' ')?.toUpperCase() }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <button @click="downloadReceipt(trx)" type="button" 
+                      class="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                      </svg>
+                      PDF
+                    </button>
+                    <button @click="batalkanTransaksi(trx.id)" :disabled="isCanceling" type="button" 
+                      class="text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      Batalkan
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Info transaksi pending -->
+              <div v-if="pendingTransactions.length > 0" class="mt-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg flex items-center gap-2">
+                <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-xs text-amber-700">{{ pendingTransactions.length }} transaksi sedang menunggu konfirmasi pembayaran dari gateway.</p>
+              </div>
             </div>
 
           </div>
         </div>
-        
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button @click="emit('close')" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+          <button @click="emit('close')" type="button" 
+            class="px-5 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 bg-white hover:bg-slate-100 transition-colors shadow-sm"
+          >
             Tutup
           </button>
         </div>
+
       </div>
     </div>
   </div>

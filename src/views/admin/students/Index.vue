@@ -5,13 +5,20 @@ import Api from "../../../api/axios";
 
 // Import Components
 import StudentTable from "./components/StudentTable.vue";
-import Pagination from "../../../components/Pagination.vue"; // Sesuaikan path jika perlu
+import Pagination from "../../../components/Pagination.vue";
+import CreateModal from "./components/CreateModal.vue";
+import ImportModal from "./components/ImportModal.vue";
 
 const students = ref([]);
 const isLoading = ref(true);
 const searchQuery = ref("");
 const currentPage = ref(1);
 const lastPage = ref(1);
+
+const showCreateModal = ref(false);
+const showImportModal = ref(false);
+const isSubmitting = ref(false);
+const classrooms = ref([]);
 
 let searchTimeout;
 
@@ -39,6 +46,61 @@ const handleSearch = () => {
   }, 500);
 };
 
+const fetchClassrooms = async () => {
+  try {
+    const response = await Api.get("/admin/classrooms");
+    classrooms.value = response.data.data;
+  } catch (error) {
+    console.error("Gagal memuat kelas:", error);
+  }
+};
+
+const submitCreate = async (formData) => {
+  isSubmitting.value = true;
+  try {
+    await Api.post("/admin/students", formData);
+    Swal.fire("Berhasil", "Data siswa berhasil disimpan!", "success");
+    showCreateModal.value = false;
+    fetchStudents(currentPage.value);
+  } catch (error) {
+    const msg = error.response?.data?.message || "Terjadi kesalahan sistem.";
+    Swal.fire("Gagal", msg, "error");
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const submitImport = async (file) => {
+  isSubmitting.value = true;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await Api.post("/admin/students/import", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    
+    if (response.data.error_count > 0) {
+      let errorMsg = response.data.errors.join("<br>");
+      Swal.fire({
+        title: "Import Selesai dengan Catatan",
+        html: `Berhasil: ${response.data.success_count} baris<br>Gagal: ${response.data.error_count} baris<br><br><div class="text-left text-sm h-32 overflow-y-auto bg-red-50 p-2 rounded text-red-700">${errorMsg}</div>`,
+        icon: "warning",
+      });
+    } else {
+      Swal.fire("Berhasil", response.data.message || "Data siswa berhasil diimport!", "success");
+    }
+    
+    showImportModal.value = false;
+    fetchStudents(currentPage.value);
+  } catch (error) {
+    const msg = error.response?.data?.message || "Terjadi kesalahan saat import.";
+    Swal.fire("Gagal", msg, "error");
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 const handleDelete = (id, name) => {
   Swal.fire({
     title: "Hapus Data?",
@@ -62,6 +124,7 @@ const handleDelete = (id, name) => {
 
 onMounted(() => {
   fetchStudents();
+  fetchClassrooms();
 });
 </script>
 
@@ -72,10 +135,13 @@ onMounted(() => {
         <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Data Siswa</h2>
         <p class="mt-1 text-sm text-gray-500">Daftar seluruh siswa aktif dan alumni Darul Fikri.</p>
       </div>
-      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <RouterLink :to="{ name: 'students.create' }" class="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex sm:gap-3">
+        <button @click="showImportModal = true" class="block w-full sm:w-auto rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 mb-3 sm:mb-0">
+          Import CSV
+        </button>
+        <button @click="showCreateModal = true" class="block w-full sm:w-auto rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
           + Tambah Siswa
-        </RouterLink>
+        </button>
       </div>
     </div>
 
@@ -106,6 +172,21 @@ onMounted(() => {
       :currentPage="currentPage" 
       :lastPage="lastPage" 
       @changePage="fetchStudents" 
+    />
+
+    <CreateModal
+      :show="showCreateModal"
+      :classrooms="classrooms"
+      :isLoading="isSubmitting"
+      @close="showCreateModal = false"
+      @submit="submitCreate"
+    />
+
+    <ImportModal
+      :show="showImportModal"
+      :isLoading="isSubmitting"
+      @close="showImportModal = false"
+      @submit="submitImport"
     />
   </div>
 </template>

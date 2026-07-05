@@ -31,11 +31,7 @@ const router = createRouter({
           name: "students.index",
           component: () => import("../views/admin/students/Index.vue"),
         },
-        {
-          path: "students/create", 
-          name: "students.create",
-          component: () => import("../views/admin/students/Create.vue"),
-        },
+
         {
           path: "students/edit/:id", 
           name: "students.edit",
