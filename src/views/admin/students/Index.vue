@@ -1,41 +1,29 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
-import Api from "../../../api/axios";
+import { useAdminStudentStore } from "../../../stores/admin/student";
+import { useAdminClassroomStore } from "../../../stores/admin/classroom";
 
-// Import Components
 import StudentTable from "./components/StudentTable.vue";
 import Pagination from "../../../components/Pagination.vue";
 import CreateModal from "./components/CreateModal.vue";
 import ImportModal from "./components/ImportModal.vue";
 
-const students = ref([]);
-const isLoading = ref(true);
-const searchQuery = ref("");
-const currentPage = ref(1);
-const lastPage = ref(1);
+const studentStore = useAdminStudentStore();
+const classroomStore = useAdminClassroomStore();
 
+const searchQuery = ref("");
 const showCreateModal = ref(false);
 const showImportModal = ref(false);
 const isSubmitting = ref(false);
-const classrooms = ref([]);
 
 let searchTimeout;
 
 const fetchStudents = async (page = 1) => {
   try {
-    isLoading.value = true;
-    const response = await Api.get("/admin/students", {
-      params: { page: page, q: searchQuery.value }
-    });
-
-    students.value = response.data.data;
-    currentPage.value = response.data.meta.current_page;
-    lastPage.value = response.data.meta.last_page;
+    await studentStore.fetchStudents(page, searchQuery.value);
   } catch (error) {
     console.error("Gagal mengambil data siswa:", error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -48,8 +36,7 @@ const handleSearch = () => {
 
 const fetchClassrooms = async () => {
   try {
-    const response = await Api.get("/admin/classrooms");
-    classrooms.value = response.data.data;
+    await classroomStore.fetchClassrooms();
   } catch (error) {
     console.error("Gagal memuat kelas:", error);
   }
@@ -58,10 +45,10 @@ const fetchClassrooms = async () => {
 const submitCreate = async (formData) => {
   isSubmitting.value = true;
   try {
-    await Api.post("/admin/students", formData);
+    await studentStore.createStudent(formData);
     Swal.fire("Berhasil", "Data siswa berhasil disimpan!", "success");
     showCreateModal.value = false;
-    fetchStudents(currentPage.value);
+    fetchStudents(studentStore.currentPage);
   } catch (error) {
     const msg = error.response?.data?.message || "Terjadi kesalahan sistem.";
     Swal.fire("Gagal", msg, "error");
@@ -76,23 +63,21 @@ const submitImport = async (file) => {
   formData.append("file", file);
 
   try {
-    const response = await Api.post("/admin/students/import", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
+    const data = await studentStore.importStudents(formData);
     
-    if (response.data.error_count > 0) {
-      let errorMsg = response.data.errors.join("<br>");
+    if (data.error_count > 0) {
+      let errorMsg = data.errors.join("<br>");
       Swal.fire({
         title: "Import Selesai dengan Catatan",
-        html: `Berhasil: ${response.data.success_count} baris<br>Gagal: ${response.data.error_count} baris<br><br><div class="text-left text-sm h-32 overflow-y-auto bg-red-50 p-2 rounded text-red-700">${errorMsg}</div>`,
+        html: `Berhasil: ${data.success_count} baris<br>Gagal: ${data.error_count} baris<br><br><div class="text-left text-sm h-32 overflow-y-auto bg-red-50 p-2 rounded text-red-700">${errorMsg}</div>`,
         icon: "warning",
       });
     } else {
-      Swal.fire("Berhasil", response.data.message || "Data siswa berhasil diimport!", "success");
+      Swal.fire("Berhasil", data.message || "Data siswa berhasil diimport!", "success");
     }
     
     showImportModal.value = false;
-    fetchStudents(currentPage.value);
+    fetchStudents(studentStore.currentPage);
   } catch (error) {
     const msg = error.response?.data?.message || "Terjadi kesalahan saat import.";
     Swal.fire("Gagal", msg, "error");
@@ -112,9 +97,9 @@ const handleDelete = (id, name) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        await Api.delete(`/admin/students/${id}`);
+        await studentStore.deleteStudent(id);
         Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
-        fetchStudents(currentPage.value); 
+        fetchStudents(studentStore.currentPage); 
       } catch (error) {
         Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus.", "error");
       }
@@ -163,20 +148,20 @@ onMounted(() => {
     </div>
 
     <StudentTable 
-      :students="students" 
-      :isLoading="isLoading" 
+      :students="studentStore.students" 
+      :isLoading="studentStore.isLoading" 
       @delete="handleDelete" 
     />
 
     <Pagination 
-      :currentPage="currentPage" 
-      :lastPage="lastPage" 
+      :currentPage="studentStore.currentPage" 
+      :lastPage="studentStore.lastPage" 
       @changePage="fetchStudents" 
     />
 
     <CreateModal
       :show="showCreateModal"
-      :classrooms="classrooms"
+      :classrooms="classroomStore.classrooms"
       :isLoading="isSubmitting"
       @close="showCreateModal = false"
       @submit="submitCreate"

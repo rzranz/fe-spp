@@ -1,11 +1,12 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import Api from "../../api/axios"; 
+import { useAuthStore } from "../../stores/auth";
 import Swal from "sweetalert2";
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 const isLoading = ref(false);
 const activeRole = ref(route.query.role === 'admin' ? 'admin' : 'student'); // Default role: Orang Tua
 
@@ -32,22 +33,7 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    const response = await Api.post("/login", {
-      email: form.email,
-      password: form.password,
-    });
-
-    const token = response.data?.token;
-    const user = response.data?.user;
-
-    if (!token || !user) {
-      throw new Error("Respon server tidak valid (Token/User hilang).");
-    }
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    Api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    const user = await authStore.login(form.email, form.password);
 
     await Swal.fire({
       icon: "success",
@@ -69,7 +55,6 @@ const handleLogin = async () => {
     let errorMessage = "Terjadi kesalahan pada sistem.";
 
     if (error.response) {
-      // PAKSA JADI ANGKA: Menghindari bug "422" (String) === 422 (Number)
       const status = parseInt(error.response.status, 10);
       const data = error.response.data;
 
@@ -80,7 +65,6 @@ const handleLogin = async () => {
       } else if (status === 422) {
         errorTitle = "Validasi Gagal";
         if (data?.errors && typeof data.errors === 'object') {
-          // Ekstrak semua pesan error dari objek validasi Laravel
           errorMessage = Object.values(data.errors).flat().join("<br>");
         } else {
           errorMessage = serverMessage || "Data yang dikirim tidak lengkap.";

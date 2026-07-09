@@ -1,9 +1,10 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../../stores/auth';
 import Swal from 'sweetalert2';
-import Api from '../../api/axios';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const handleLogout = () => {
   Swal.fire({
@@ -18,26 +19,18 @@ const handleLogout = () => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        // Pasang loading biar UI gak freeze saat nembak backend
         Swal.fire({
           title: 'Sedang keluar...',
           allowOutsideClick: false,
           didOpen: () => { Swal.showLoading(); }
         });
 
-        await Api.post('/logout');
-        
-        // Bersihkan brankas lokal
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        await authStore.logout();
         
         Swal.close();
         router.push('/login');
       } catch (error) {
         console.error('Logout error', error);
-        // Fallback: Kalau server down, tetap paksa user keluar secara lokal
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         Swal.close();
         router.push('/login');
       }

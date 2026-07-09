@@ -1,10 +1,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import Api from '../../../api/axios';
+import { useAdminFeeStore } from '../../../stores/admin/fee';
 import Swal from 'sweetalert2';
 
-const fees = ref([]);
-const isLoading = ref(false);
+const feeStore = useAdminFeeStore();
 const showModal = ref(false);
 const isEditing = ref(false);
 const isSubmitting = ref(false);
@@ -18,18 +17,13 @@ const form = reactive({
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
 
 const fetchFees = async () => {
-  isLoading.value = true;
   try {
-    const response = await Api.get('/admin/fees');
-    fees.value = response.data.data;
+    await feeStore.fetchFees();
   } catch (error) {
     console.error("Gagal menarik data tarif:", error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
-// Modal Handlers
 const openAddModal = () => {
   isEditing.value = false;
   form.id = '';
@@ -50,7 +44,6 @@ const closeModal = () => {
   showModal.value = false;
 };
 
-// Submit Action (Create / Update)
 const handleSubmit = async () => {
   if (!form.name || !form.amount) {
     return Swal.fire('Peringatan', 'Nama Tagihan dan Nominal wajib diisi!', 'warning');
@@ -61,15 +54,15 @@ const handleSubmit = async () => {
     const payload = { name: form.name, amount: form.amount };
     
     if (isEditing.value) {
-      await Api.put(`/admin/fees/${form.id}`, payload);
+      await feeStore.updateFee(form.id, payload);
       Swal.fire('Berhasil', 'Data tagihan berhasil diperbarui.', 'success');
     } else {
-      await Api.post('/admin/fees', payload);
+      await feeStore.createFee(payload);
       Swal.fire('Berhasil', 'Jenis tagihan baru ditambahkan.', 'success');
     }
     
     closeModal();
-    fetchFees(); // Refresh tabel
+    fetchFees(); 
   } catch (error) {
     Swal.fire('Gagal', error.response?.data?.message || 'Terjadi kesalahan sistem', 'error');
   } finally {
@@ -77,7 +70,6 @@ const handleSubmit = async () => {
   }
 };
 
-// Delete Action
 const deleteFee = (id) => {
   Swal.fire({
     title: 'Hapus Jenis Tagihan?',
@@ -89,8 +81,8 @@ const deleteFee = (id) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const response = await Api.delete(`/admin/fees/${id}`);
-        Swal.fire('Terhapus!', response.data.message, 'success');
+        const responseData = await feeStore.deleteFee(id);
+        Swal.fire('Terhapus!', responseData.message || 'Data berhasil dihapus.', 'success');
         fetchFees();
       } catch (error) {
         Swal.fire('Ditolak!', error.response?.data?.message || 'Gagal menghapus data.', 'error');
@@ -128,13 +120,21 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-if="isLoading">
-            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Memuat data...</td>
+          <tr v-if="feeStore.isLoading">
+            <td colspan="3" class="px-6 py-12 text-center">
+              <div class="flex items-center justify-center text-indigo-600">
+                <svg class="animate-spin h-8 w-8 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span class="font-medium">Memuat data...</span>
+              </div>
+            </td>
           </tr>
-          <tr v-else-if="fees.length === 0">
+          <tr v-else-if="feeStore.fees.length === 0">
             <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Belum ada data master biaya.</td>
           </tr>
-          <tr v-else v-for="fee in fees" :key="fee.id">
+          <tr v-else v-for="fee in feeStore.fees" :key="fee.id">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ fee.name }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ formatRupiah(fee.amount) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">

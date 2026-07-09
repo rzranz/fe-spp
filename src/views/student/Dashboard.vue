@@ -1,71 +1,27 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import Api from "../../api/axios";
+import { ref, onMounted } from "vue";
+import { useStudentStore } from "../../stores/student";
+import { useAuthStore } from "../../stores/auth";
 import Swal from "sweetalert2";
 import QrcodeVue from "qrcode.vue";
 
-// Import semua komponen anak
 import DashboardHeader from "./components/DashboardHeader.vue";
 import BillCard from "./components/BillCard.vue";
 import TransactionHistory from "./components/TransactionHistory.vue";
 import HelpCard from "./components/HelpCard.vue";
 import ArchivedBills from "./components/ArchivedBills.vue";
 
-const bills = ref([]);
-const isLoading = ref(true);
-
+const studentStore = useStudentStore();
+const authStore = useAuthStore();
 const isQrisModalOpen = ref(false);
-const qrisString = ref("");
-const qrisInvoice = ref("");
-const qrisFeeDetail = ref(null);
 
-const userStr = localStorage.getItem("user");
-const studentData = userStr ? JSON.parse(userStr) : {};
-
-const activeBills = computed(() => bills.value.filter((b) => b.status !== "paid"));
-const historyBills = computed(() => bills.value.filter((b) => b.status === "paid"));
-
-const paymentHistory = computed(() => {
-  let history = [];
-  bills.value.forEach((bill) => {
-    if (bill.transactions && bill.transactions.length > 0) {
-      const successfulTrx = bill.transactions.filter((trx) => trx.status === "success");
-      successfulTrx.forEach((trx) => {
-        history.push({
-          id: trx.id,
-          title: `Pembayaran SPP ${bill.month} ${bill.year}`,
-          amount: trx.amount,
-          date: new Date(trx.created_at).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          rawDate: new Date(trx.created_at),
-        });
-      });
-    }
-  });
-  return history.sort((a, b) => b.rawDate - a.rawDate);
-});
-
-const totalTunggakan = computed(() => {
-  return activeBills.value.reduce(
-    (total, bill) => total + (bill.amount - bill.paid_amount),
-    0
-  );
-});
+const studentData = authStore.user || {};
 
 const fetchMyBills = async () => {
-  isLoading.value = true;
   try {
-    const response = await Api.get("/student/my-bills");
-    bills.value = response.data.data;
+    await studentStore.fetchBills();
   } catch (error) {
     Swal.fire("Gagal", "Tidak dapat memuat data tagihan.", "error");
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -77,7 +33,6 @@ const formatRupiah = (angka) => {
   }).format(angka);
 };
 
-// --- LOGIKA PAKASIR ---
 const processPayment = async (billId, amountToPay) => {
   try {
     Swal.fire({
@@ -89,15 +44,9 @@ const processPayment = async (billId, amountToPay) => {
       },
     });
     
-    const response = await Api.post("/student/pay", {
-      bill_id: billId,
-      amount: amountToPay,
-    });
+    const success = await studentStore.payBill(billId, amountToPay);
 
-    if (response.data.qris) {
-      qrisString.value = response.data.qris;
-      qrisInvoice.value = response.data.invoice_number;
-      qrisFeeDetail.value = response.data.fee_detail;
+    if (success) {
       Swal.close();
       isQrisModalOpen.value = true;
     } else {
@@ -117,9 +66,7 @@ const processPayment = async (billId, amountToPay) => {
 
 const closeQrisModal = () => {
   isQrisModalOpen.value = false;
-  qrisString.value = "";
-  qrisInvoice.value = "";
-  qrisFeeDetail.value = null;
+  studentStore.clearQrisData();
   fetchMyBills();
 };
 
@@ -148,11 +95,11 @@ onMounted(() => fetchMyBills());
   <div class="max-w-7xl mx-auto space-y-6 relative">
     <DashboardHeader
       :student-data="studentData"
-      :bills="bills"
-      :total-tunggakan="totalTunggakan"
+      :bills="studentStore.bills"
+      :total-tunggakan="studentStore.totalTunggakan"
     />
 
-    <div v-if="isLoading" class="text-center py-12">
+    <div v-if="studentStore.isLoading" class="text-center py-12">
       <p class="text-gray-500 font-medium animate-pulse">Memuat data sistem...</p>
     </div>
 
@@ -163,7 +110,7 @@ onMounted(() => fetchMyBills());
         </h3>
 
         <div
-          v-if="activeBills.length === 0"
+          v-if="studentStore.activeBills.length === 0"
           class="bg-green-50 border border-green-200 text-green-700 p-6 rounded-2xl flex items-center gap-4"
         >
           <svg
@@ -185,18 +132,18 @@ onMounted(() => fetchMyBills());
         </div>
 
         <BillCard
-          v-for="bill in activeBills"
+          v-for="bill in studentStore.activeBills"
           :key="bill.id"
           :bill="bill"
           @pay-full="handlePayFull"
           @pay-partial="handlePayPartial"
         />
 
-        <ArchivedBills :history-bills="historyBills" />
+        <ArchivedBills :history-bills="studentStore.historyBills" />
       </div>
 
       <div class="lg:col-span-1">
-        <TransactionHistory :payment-history="paymentHistory" />
+        <TransactionHistory :payment-history="studentStore.paymentHistory" />
         <HelpCard />
       </div>
     </div>
@@ -212,21 +159,21 @@ onMounted(() => fetchMyBills());
           </div>
           <div>
             <h3 class="font-bold text-gray-800 text-lg uppercase tracking-wide leading-tight">INVOICE SPP</h3>
-            <p class="text-gray-500 text-xs font-mono mt-0.5">ID: {{ qrisInvoice }}</p>
+            <p class="text-gray-500 text-xs font-mono mt-0.5">ID: {{ studentStore.qrisData?.invoice }}</p>
           </div>
         </div>
 
         <!-- Detail Tagihan (Formal Mono) -->
-        <div class="px-6 py-5" v-if="qrisFeeDetail">
+        <div class="px-6 py-5" v-if="studentStore.qrisData?.feeDetail">
           <div class="space-y-3 mb-6">
             <div>
               <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Kepada</p>
-              <p class="font-bold text-gray-800">{{ qrisFeeDetail.student_name }}</p>
-              <p class="text-sm text-gray-600">{{ qrisFeeDetail.instansi }}</p>
+              <p class="font-bold text-gray-800">{{ studentStore.qrisData.feeDetail.student_name }}</p>
+              <p class="text-sm text-gray-600">{{ studentStore.qrisData.feeDetail.instansi }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Deskripsi</p>
-              <p class="font-medium text-gray-700 text-sm">{{ qrisFeeDetail.bill_name }}</p>
+              <p class="font-medium text-gray-700 text-sm">{{ studentStore.qrisData.feeDetail.bill_name }}</p>
             </div>
           </div>
 
@@ -234,15 +181,15 @@ onMounted(() => fetchMyBills());
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
             <div class="flex justify-between text-sm text-gray-600 mb-2">
               <span>Pokok Tagihan</span>
-              <span class="font-mono">{{ formatRupiah(qrisFeeDetail.pokok) }}</span>
+              <span class="font-mono">{{ formatRupiah(studentStore.qrisData.feeDetail.pokok) }}</span>
             </div>
             <div class="flex justify-between text-sm text-gray-500 mb-3 pb-3 border-b border-gray-200">
               <span>Biaya Layanan</span>
-              <span class="font-mono">{{ formatRupiah(qrisFeeDetail.admin_fee) }}</span>
+              <span class="font-mono">{{ formatRupiah(studentStore.qrisData.feeDetail.admin_fee) }}</span>
             </div>
             <div class="flex justify-between items-center text-gray-800 font-bold">
               <span class="text-sm uppercase tracking-wide">Total Bayar</span>
-              <span class="text-lg font-mono text-indigo-700">{{ formatRupiah(qrisFeeDetail.total_bayar) }}</span>
+              <span class="text-lg font-mono text-indigo-700">{{ formatRupiah(studentStore.qrisData.feeDetail.total_bayar) }}</span>
             </div>
           </div>
 
@@ -250,7 +197,7 @@ onMounted(() => fetchMyBills());
           <div class="flex flex-col items-center">
             <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Scan QRIS untuk Membayar</p>
             <div class="bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
-              <QrcodeVue :value="qrisString" :size="180" level="M" />
+              <QrcodeVue :value="studentStore.qrisData.string" :size="180" level="M" />
             </div>
             <p class="mt-4 text-xs text-center text-gray-500">
               Buka aplikasi M-Banking atau e-Wallet pilihan Anda, lalu scan QR Code di atas.

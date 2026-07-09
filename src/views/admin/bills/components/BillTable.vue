@@ -1,6 +1,7 @@
 <script setup>
 defineProps({
-  bills: Array
+  bills: Array,
+  isLoading: Boolean
 });
 
 const emit = defineEmits(["pay", "delete", "edit", "remind"]);
@@ -23,7 +24,15 @@ const getStatusBadge = (status) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+  <div v-if="isLoading" class="flex items-center justify-center py-20 text-indigo-600 bg-white rounded-xl shadow-sm border border-slate-200">
+    <svg class="animate-spin h-8 w-8 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <span class="font-medium">Memuat data...</span>
+  </div>
+
+  <div v-else class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     <table class="min-w-full divide-y divide-slate-100">
       <thead>
         <tr class="bg-slate-50">
