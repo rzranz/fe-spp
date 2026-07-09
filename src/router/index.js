@@ -8,7 +8,7 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
-      meta: { hideNavbar: true, guestOnly: true }
+      meta: { hideNavbar: true, guestOnly: true },
     },
     {
       path: "/login",
@@ -19,40 +19,36 @@ const router = createRouter({
     {
       path: "/admin",
       component: () => import("../layouts/AdminLayout.vue"),
-      meta: { requiresAuth: true, role: "admin", hideNavbar: true }, 
+      meta: { requiresAuth: true, role: "admin", hideNavbar: true },
       children: [
         {
-          path: "dashboard", 
+          path: "dashboard",
           name: "admin.dashboard",
-          component: () => import("../views/admin/Dashboard.vue"), 
+          component: () => import("../views/admin/Dashboard.vue"),
         },
         {
-          path: "students", 
+          path: "students",
           name: "students.index",
           component: () => import("../views/admin/students/Index.vue"),
         },
+
         {
-          path: "students/create", 
-          name: "students.create",
-          component: () => import("../views/admin/students/Create.vue"),
-        },
-        {
-          path: "students/edit/:id", 
+          path: "students/edit/:id",
           name: "students.edit",
           component: () => import("../views/admin/students/Edit.vue"),
         },
         {
-          path: "classrooms", 
+          path: "classrooms",
           name: "classrooms.index",
           component: () => import("../views/admin/classrooms/Index.vue"),
         },
         {
-          path: "fees", 
+          path: "fees",
           name: "fees.index",
           component: () => import("../views/admin/fees/index.vue"),
         },
         {
-          path: "bills", 
+          path: "bills",
           name: "bills.index",
           component: () => import("../views/admin/bills/Index.vue"),
         },
@@ -66,9 +62,10 @@ const router = createRouter({
         {
           path: "dashboard",
           name: "student.dashboard",
-          component: () => import("../views/student/Dashboard.vue"),
-        }
-      ]
+          component: () =>
+            import("../views/student/Dashboard.vue"),
+        },
+      ],
     },
   ],
 });

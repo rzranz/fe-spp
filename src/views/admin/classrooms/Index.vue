@@ -1,28 +1,21 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
-import Api from "../../../api/axios";
+import { useAdminClassroomStore } from "../../../stores/admin/classroom";
 
-// Import Components
 import ClassroomTable from "./components/ClassroomTable.vue";
 import StudentListModal from "./components/StudentListModal.vue";
 
-const classrooms = ref([]);
-const isLoading = ref(true);
+const classroomStore = useAdminClassroomStore();
 
-// Modal State
 const showStudentModal = ref(false);
 const selectedClassroom = ref(null);
 
 const fetchClassrooms = async () => {
   try {
-    isLoading.value = true;
-    const response = await Api.get("/admin/classrooms");
-    classrooms.value = response.data.data || response.data;
+    await classroomStore.fetchClassrooms();
   } catch (error) {
     console.error("Gagal load data kelas:", error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -37,7 +30,7 @@ const handleCreate = async () => {
 
   if (className) {
     try {
-      await Api.post("/admin/classrooms", { name: className });
+      await classroomStore.createClassroom(className);
       Swal.fire("Berhasil!", "Kelas baru ditambahkan.", "success");
       fetchClassrooms();
     } catch (error) { Swal.fire("Gagal", "Terjadi kesalahan", "error"); }
@@ -56,7 +49,7 @@ const handleEdit = async (id, oldName) => {
 
   if (newName && newName !== oldName) {
     try {
-      await Api.put(`/admin/classrooms/${id}`, { name: newName });
+      await classroomStore.updateClassroom(id, newName);
       Swal.fire("Berhasil!", "Nama diperbarui.", "success");
       fetchClassrooms();
     } catch (error) { Swal.fire("Gagal", "Terjadi kesalahan", "error"); }
@@ -75,7 +68,7 @@ const handleDelete = async (id, name) => {
 
   if (result.isConfirmed) {
     try {
-      await Api.delete(`/admin/classrooms/${id}`);
+      await classroomStore.deleteClassroom(id);
       Swal.fire("Terhapus!", "Kelas dihapus.", "success");
       fetchClassrooms();
     } catch (error) {
@@ -107,8 +100,8 @@ onMounted(() => fetchClassrooms());
     </div>
 
     <ClassroomTable 
-      :classrooms="classrooms" 
-      :isLoading="isLoading" 
+      :classrooms="classroomStore.classrooms" 
+      :isLoading="classroomStore.isLoadingClassrooms" 
       @view="openStudentModal" 
       @edit="handleEdit" 
       @delete="handleDelete" 

@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
-import { useBillManagement } from "../../../composables/useBillManagement";
+import { storeToRefs } from "pinia";
+import { useAdminBillStore } from "../../../stores/admin/bill";
+
 import BillTable from "./components/BillTable.vue";
 import GenerateModal from "./components/GenerateModal.vue";
 import PaymentModal from "./components/PaymentModal.vue";
@@ -9,31 +11,11 @@ import ExportModal from "./components/ExportModal.vue";
 import EditModal from "./components/EditModal.vue";
 import Pagination from "../../../components/Pagination.vue";
 
-const {
-  bills,
-  fees,
-  classrooms,
-  studentsList,
-  months,
-  isLoading,
-  isProcessing,
-  isEditing,
-  searchQuery,
-  currentPage,
-  lastPage,
-  filters,
-  fetchClassrooms,
-  fetchFees,
-  fetchActiveStudents,
-  fetchBills,
-  handleSearch,
-  handleFilterChange,
-  handleGenerate,
-  handlePayment,
-  handleDelete,
-  handleEditSubmit,
-  handleRemindWA,
-} = useBillManagement();
+const billStore = useAdminBillStore();
+const { 
+  bills, fees, classrooms, studentsList, months, 
+  isLoading, isProcessing, isEditing, searchQuery, currentPage, lastPage, filters 
+} = storeToRefs(billStore);
 
 const showGenerateModal = ref(false);
 const showPaymentModal = ref(false);
@@ -41,6 +23,76 @@ const showExportModal = ref(false);
 const showEditModal = ref(false);
 const selectedBill = ref(null);
 const billToEdit = ref(null);
+
+let searchTimeout;
+
+const handleSearch = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => billStore.fetchBills(1), 500);
+};
+
+const handleFilterChange = () => {
+  billStore.fetchBills(1);
+};
+
+const handleGenerate = async (formData, onSuccess) => {
+  try {
+    const data = await billStore.handleGenerate(formData);
+    Swal.fire("Berhasil", data.message, "success");
+    if (onSuccess) onSuccess();
+  } catch (error) {
+    Swal.fire("Gagal", error.response?.data?.message, "error");
+  }
+};
+
+const handlePayment = async (paymentData, onSuccess) => {
+  try {
+    await billStore.handlePayment(paymentData);
+    Swal.fire("Sukses", "Pembayaran tercatat.", "success");
+    if (onSuccess) onSuccess();
+  } catch (error) {
+    Swal.fire("Gagal", error.response?.data?.message, "error");
+  }
+};
+
+const handleDelete = (id) => {
+  Swal.fire({
+    title: "Hapus?", text: "Data tagihan akan hilang permanen.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33"
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await billStore.handleDelete(id);
+        Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+      } catch (error) { Swal.fire("Gagal", "Gagal hapus data", "error"); }
+    }
+  });
+};
+
+const handleEditSubmit = async ({ id, payload }, onSuccess) => {
+  try {
+    const data = await billStore.handleEditSubmit(id, payload);
+    Swal.fire("Berhasil", data.message || "Data diperbarui.", "success");
+    if (onSuccess) onSuccess();
+  } catch (error) {
+    Swal.fire("Gagal", error.response?.data?.message || "Gagal mengubah data.", "error");
+  }
+};
+
+const handleRemindWA = (id) => {
+  Swal.fire({
+    title: "Kirim Pengingat WA?", text: "Pesan akan dikirimkan otomatis.", icon: "question", showCancelButton: true, confirmButtonColor: '#10B981', confirmButtonText: "Ya, Kirim!"
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      try {
+        const data = await billStore.handleRemindWA(id);
+        Swal.fire("Terkirim!", data.message, "success");
+      } catch (error) { 
+        Swal.fire("Gagal", error.response?.data?.message || "Gagal mengirim notifikasi", "error"); 
+      }
+    }
+  });
+};
 
 const openPayModal = (bill) => {
   selectedBill.value = bill;
@@ -60,10 +112,10 @@ const openEditModal = (bill) => {
 };
 
 onMounted(() => {
-  fetchClassrooms();
-  fetchFees();
-  fetchActiveStudents();
-  fetchBills();
+  billStore.fetchClassrooms();
+  billStore.fetchFees();
+  billStore.fetchActiveStudents();
+  billStore.fetchBills();
 });
 </script>
 
@@ -172,7 +224,7 @@ onMounted(() => {
     <Pagination
       :currentPage="currentPage"
       :lastPage="lastPage"
-      @changePage="fetchBills"
+      @changePage="billStore.fetchBills"
     />
 
     <GenerateModal
@@ -200,7 +252,7 @@ onMounted(() => {
       :bill="selectedBill"
       @close="showPaymentModal = false"
       @submit="(data) => handlePayment(data, () => (showPaymentModal = false))"
-      @refresh="() => fetchBills(currentPage)"
+      @refresh="() => billStore.fetchBills(currentPage)"
     />
 
     <ExportModal

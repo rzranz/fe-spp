@@ -2,15 +2,17 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import Api from '../../../api/axios'
+import { useAdminStudentStore } from '../../../stores/admin/student'
+import { useAdminClassroomStore } from '../../../stores/admin/classroom'
 
 const route = useRoute()
 const router = useRouter()
+const studentStore = useAdminStudentStore()
+const classroomStore = useAdminClassroomStore()
 
 const studentId = route.params.id
 
 const isLoading = ref(false)
-const classrooms = ref([])
 
 const form = ref({
   nis: '',
@@ -24,8 +26,7 @@ const form = ref({
 
 const fetchClassrooms = async () => {
   try {
-    const response = await Api.get('/admin/classrooms')
-    classrooms.value = response.data.data
+    await classroomStore.fetchClassrooms()
   } catch (error) {
     console.error(error)
   }
@@ -33,8 +34,7 @@ const fetchClassrooms = async () => {
 
 const fetchStudent = async () => {
   try {
-    const response = await Api.get(`/admin/students/${studentId}`)
-    const data = response.data.data
+    const data = await studentStore.fetchStudent(studentId)
     
     form.value = {
       nis: data.nis,
@@ -59,7 +59,7 @@ onMounted(() => {
 const handleUpdate = async () => {
   isLoading.value = true
   try {
-    await Api.put(`/admin/students/${studentId}`, form.value)
+    await studentStore.updateStudent(studentId, form.value)
     
     Swal.fire({
       icon: 'success',
@@ -106,7 +106,7 @@ const handleUpdate = async () => {
           <label class="block text-sm font-medium text-gray-700">Kelas</label>
           <select v-model="form.class_id" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
             <option value="" disabled>-- Pilih Kelas --</option>
-            <option v-for="cls in classrooms" :key="cls.id" :value="cls.id">
+            <option v-for="cls in classroomStore.classrooms" :key="cls.id" :value="cls.id">
               {{ cls.name }}
             </option>
           </select>

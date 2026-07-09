@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const Api = axios.create({
   
-  baseURL: 'https://api.darulfikri.sch.id/api', 
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.darulfikri.sch.id/api', 
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

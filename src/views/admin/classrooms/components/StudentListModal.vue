@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import Swal from "sweetalert2";
-import Api from "../../../../api/axios";
+import { useAdminClassroomStore } from "../../../../stores/admin/classroom";
 
 const props = defineProps({
   show: Boolean,
@@ -10,31 +10,23 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
+const classroomStore = useAdminClassroomStore();
 
-const students = ref([]);
-const isLoadingStudents = ref(false);
-
-// Ambil data siswa setiap kali modal dibuka dan ID kelasnya ada
 const fetchStudents = async () => {
   if (!props.classroom?.id) return;
-  isLoadingStudents.value = true;
   try {
-    const response = await Api.get(`/admin/classrooms/${props.classroom.id}`);
-    students.value = response.data.data.students || [];
+    await classroomStore.fetchClassroomStudents(props.classroom.id);
   } catch (error) {
     Swal.fire("Gagal", "Tidak dapat mengambil data siswa di kelas ini.", "error");
     emit("close");
-  } finally {
-    isLoadingStudents.value = false;
   }
 };
 
 watch(() => props.show, (newVal) => {
   if (newVal) fetchStudents();
-  else students.value = []; // Reset saat ditutup
+  else classroomStore.studentsInClass = []; // Reset saat ditutup
 });
 
-// Eksekusi Pindah Kelas
 const moveStudent = async (student) => {
   const classOptions = {};
   props.allClassrooms.forEach((c) => {
@@ -60,7 +52,7 @@ const moveStudent = async (student) => {
 
   if (targetClassId) {
     try {
-      await Api.patch(`/admin/students/${student.id}/move-class`, { class_id: targetClassId });
+      await classroomStore.moveStudent(student.id, targetClassId);
       Swal.fire("Berhasil", "Siswa telah dipindahkan.", "success");
       fetchStudents(); // Refresh data di dalam modal
     } catch (error) {
@@ -85,7 +77,7 @@ const moveStudent = async (student) => {
             <button @click="emit('close')" class="text-gray-400 hover:text-gray-500 font-bold text-xl">&times;</button>
           </div>
 
-          <div v-if="isLoadingStudents" class="text-center py-8 text-gray-500">Memuat daftar siswa...</div>
+          <div v-if="classroomStore.isLoadingStudents" class="text-center py-8 text-gray-500">Memuat daftar siswa...</div>
           
           <div v-else class="overflow-y-auto max-h-96 border rounded-md">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -97,7 +89,7 @@ const moveStudent = async (student) => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-                <tr v-for="student in students" :key="student.id" class="hover:bg-gray-50">
+                <tr v-for="student in classroomStore.studentsInClass" :key="student.id" class="hover:bg-gray-50">
                   <td class="px-4 py-3">{{ student.nis }}</td>
                   <td class="px-4 py-3 font-medium text-gray-900">{{ student.user?.name || 'User Dihapus' }}</td>
                   <td class="px-4 py-3 text-center">
@@ -106,7 +98,7 @@ const moveStudent = async (student) => {
                     </button>
                   </td>
                 </tr>
-                <tr v-if="students.length === 0">
+                <tr v-if="classroomStore.studentsInClass.length === 0">
                   <td colspan="3" class="text-center py-6 text-gray-500 bg-gray-50">Tidak ada siswa terdaftar di kelas ini.</td>
                 </tr>
               </tbody>

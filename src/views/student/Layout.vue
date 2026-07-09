@@ -1,9 +1,10 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../../stores/auth';
 import Swal from 'sweetalert2';
-import Api from '../../api/axios';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const handleLogout = () => {
   Swal.fire({
@@ -18,26 +19,18 @@ const handleLogout = () => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        // Pasang loading biar UI gak freeze saat nembak backend
         Swal.fire({
           title: 'Sedang keluar...',
           allowOutsideClick: false,
           didOpen: () => { Swal.showLoading(); }
         });
 
-        await Api.post('/logout');
-        
-        // Bersihkan brankas lokal
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        await authStore.logout();
         
         Swal.close();
         router.push('/login');
       } catch (error) {
         console.error('Logout error', error);
-        // Fallback: Kalau server down, tetap paksa user keluar secara lokal
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         Swal.close();
         router.push('/login');
       }
@@ -50,12 +43,12 @@ const handleLogout = () => {
   <div class="min-h-screen bg-gray-50">
     <nav class="bg-indigo-600 shadow-md">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between">
+        <div class="flex h-20 items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white font-bold text-indigo-600">
-              DF
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white p-1 overflow-hidden">
+              <img src="/logo.png" alt="Logo Sekolah" class="w-full h-full object-contain" />
             </div>
-            <span class="text-xl font-bold text-white tracking-wide">TK Darul Fikri</span>
+            <span class="text-xl font-bold text-white tracking-wide">RA Darul Fikri</span>
           </div>
           <button @click="handleLogout" class="rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-400 transition-colors">
             Keluar

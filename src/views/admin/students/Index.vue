@@ -1,34 +1,29 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
-import Api from "../../../api/axios";
+import { useAdminStudentStore } from "../../../stores/admin/student";
+import { useAdminClassroomStore } from "../../../stores/admin/classroom";
 
-// Import Components
 import StudentTable from "./components/StudentTable.vue";
-import Pagination from "../../../components/Pagination.vue"; // Sesuaikan path jika perlu
+import Pagination from "../../../components/Pagination.vue";
+import CreateModal from "./components/CreateModal.vue";
+import ImportModal from "./components/ImportModal.vue";
 
-const students = ref([]);
-const isLoading = ref(true);
+const studentStore = useAdminStudentStore();
+const classroomStore = useAdminClassroomStore();
+
 const searchQuery = ref("");
-const currentPage = ref(1);
-const lastPage = ref(1);
+const showCreateModal = ref(false);
+const showImportModal = ref(false);
+const isSubmitting = ref(false);
 
 let searchTimeout;
 
 const fetchStudents = async (page = 1) => {
   try {
-    isLoading.value = true;
-    const response = await Api.get("/admin/students", {
-      params: { page: page, q: searchQuery.value }
-    });
-
-    students.value = response.data.data;
-    currentPage.value = response.data.meta.current_page;
-    lastPage.value = response.data.meta.last_page;
+    await studentStore.fetchStudents(page, searchQuery.value);
   } catch (error) {
     console.error("Gagal mengambil data siswa:", error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -37,6 +32,58 @@ const handleSearch = () => {
   searchTimeout = setTimeout(() => {
     fetchStudents(1);
   }, 500);
+};
+
+const fetchClassrooms = async () => {
+  try {
+    await classroomStore.fetchClassrooms();
+  } catch (error) {
+    console.error("Gagal memuat kelas:", error);
+  }
+};
+
+const submitCreate = async (formData) => {
+  isSubmitting.value = true;
+  try {
+    await studentStore.createStudent(formData);
+    Swal.fire("Berhasil", "Data siswa berhasil disimpan!", "success");
+    showCreateModal.value = false;
+    fetchStudents(studentStore.currentPage);
+  } catch (error) {
+    const msg = error.response?.data?.message || "Terjadi kesalahan sistem.";
+    Swal.fire("Gagal", msg, "error");
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const submitImport = async (file) => {
+  isSubmitting.value = true;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const data = await studentStore.importStudents(formData);
+    
+    if (data.error_count > 0) {
+      let errorMsg = data.errors.join("<br>");
+      Swal.fire({
+        title: "Import Selesai dengan Catatan",
+        html: `Berhasil: ${data.success_count} baris<br>Gagal: ${data.error_count} baris<br><br><div class="text-left text-sm h-32 overflow-y-auto bg-red-50 p-2 rounded text-red-700">${errorMsg}</div>`,
+        icon: "warning",
+      });
+    } else {
+      Swal.fire("Berhasil", data.message || "Data siswa berhasil diimport!", "success");
+    }
+    
+    showImportModal.value = false;
+    fetchStudents(studentStore.currentPage);
+  } catch (error) {
+    const msg = error.response?.data?.message || "Terjadi kesalahan saat import.";
+    Swal.fire("Gagal", msg, "error");
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const handleDelete = (id, name) => {
@@ -50,9 +97,9 @@ const handleDelete = (id, name) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        await Api.delete(`/admin/students/${id}`);
+        await studentStore.deleteStudent(id);
         Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
-        fetchStudents(currentPage.value); 
+        fetchStudents(studentStore.currentPage); 
       } catch (error) {
         Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus.", "error");
       }
@@ -62,6 +109,7 @@ const handleDelete = (id, name) => {
 
 onMounted(() => {
   fetchStudents();
+  fetchClassrooms();
 });
 </script>
 
@@ -72,10 +120,13 @@ onMounted(() => {
         <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Data Siswa</h2>
         <p class="mt-1 text-sm text-gray-500">Daftar seluruh siswa aktif dan alumni Darul Fikri.</p>
       </div>
-      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <RouterLink :to="{ name: 'students.create' }" class="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex sm:gap-3">
+        <button @click="showImportModal = true" class="block w-full sm:w-auto rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 mb-3 sm:mb-0">
+          Import CSV
+        </button>
+        <button @click="showCreateModal = true" class="block w-full sm:w-auto rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
           + Tambah Siswa
-        </RouterLink>
+        </button>
       </div>
     </div>
 
@@ -97,15 +148,30 @@ onMounted(() => {
     </div>
 
     <StudentTable 
-      :students="students" 
-      :isLoading="isLoading" 
+      :students="studentStore.students" 
+      :isLoading="studentStore.isLoading" 
       @delete="handleDelete" 
     />
 
     <Pagination 
-      :currentPage="currentPage" 
-      :lastPage="lastPage" 
+      :currentPage="studentStore.currentPage" 
+      :lastPage="studentStore.lastPage" 
       @changePage="fetchStudents" 
+    />
+
+    <CreateModal
+      :show="showCreateModal"
+      :classrooms="classroomStore.classrooms"
+      :isLoading="isSubmitting"
+      @close="showCreateModal = false"
+      @submit="submitCreate"
+    />
+
+    <ImportModal
+      :show="showImportModal"
+      :isLoading="isSubmitting"
+      @close="showImportModal = false"
+      @submit="submitImport"
     />
   </div>
 </template>
