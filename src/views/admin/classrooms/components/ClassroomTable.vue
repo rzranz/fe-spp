@@ -17,7 +17,8 @@ const emit = defineEmits(["view", "edit", "delete"]);
   </div>
   <div v-else class="mt-4 flow-root">
     <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-      <table class="min-w-full divide-y divide-gray-300">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-300">
         <thead class="bg-gray-50">
           <tr>
             <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 w-16">ID</th>
@@ -39,7 +40,8 @@ const emit = defineEmits(["view", "edit", "delete"]);
             <td colspan="3" class="text-center py-8 text-gray-500">Belum ada data kelas.</td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   </div>
 </template>
