@@ -79,7 +79,7 @@ const moveStudent = async (student) => {
 
           <div v-if="classroomStore.isLoadingStudents" class="text-center py-8 text-gray-500">Memuat daftar siswa...</div>
           
-          <div v-else class="overflow-y-auto max-h-96 border rounded-md">
+          <div v-else class="overflow-y-auto overflow-x-auto max-h-96 border rounded-md">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
               <thead class="bg-gray-50 sticky top-0">
                 <tr>
