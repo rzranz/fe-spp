@@ -32,8 +32,9 @@ const getStatusBadge = (status) => {
     <span class="font-medium">Memuat data...</span>
   </div>
 
-  <div v-else class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-    <table class="min-w-full divide-y divide-slate-100">
+  <div v-else class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden w-full max-w-full">
+    <div class="w-full overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-100">
       <thead>
         <tr class="bg-slate-50">
           <th class="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Siswa</th>
@@ -132,6 +133,7 @@ const getStatusBadge = (status) => {
           </td>
         </tr>
       </tbody>
-    </table>
+      </table>
+    </div>
   </div>
 </template>
