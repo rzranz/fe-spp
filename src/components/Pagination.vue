@@ -9,7 +9,7 @@ const emit = defineEmits(["changePage"]);
 
 <template>
   <div v-if="lastPage > 1" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-b-lg shadow">
-    <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+    <div class="flex flex-col sm:flex-row w-full sm:flex-1 items-center sm:justify-between gap-4">
       <div>
         <p class="text-sm text-gray-700">
           Menampilkan Halaman <span class="font-medium">{{ currentPage }}</span> dari <span class="font-medium">{{ lastPage }}</span>
