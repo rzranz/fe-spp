@@ -110,7 +110,7 @@ onMounted(() => fetchClassrooms());
     <StudentListModal 
       :show="showStudentModal" 
       :classroom="selectedClassroom" 
-      :allClassrooms="classrooms" 
+      :allClassrooms="classroomStore.classrooms" 
       @close="showStudentModal = false" 
     />
   </div>
