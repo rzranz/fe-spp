@@ -12,17 +12,15 @@ const activeRole = ref(route.query.role === 'admin' ? 'admin' : 'student'); // D
 
 const themeClasses = computed(() => {
   return activeRole.value === 'admin' 
-    ? 'from-blue-50 via-slate-50 to-blue-200' 
-    : 'from-indigo-50 via-slate-50 to-slate-200';
+    ? 'bg-slate-100' 
+    : 'bg-gray-100';
 });
 const buttonTheme = computed(() => {
   return activeRole.value === 'admin'
     ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
     : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500';
 });
-const blobTheme1 = computed(() => activeRole.value === 'admin' ? 'bg-blue-200' : 'bg-indigo-200');
-const blobTheme2 = computed(() => activeRole.value === 'admin' ? 'bg-cyan-200' : 'bg-purple-200');
-const blobTheme3 = computed(() => activeRole.value === 'admin' ? 'bg-teal-200' : 'bg-pink-200');
+
 
 const form = reactive({
   email: "",
@@ -100,12 +98,8 @@ const handleLogin = async () => {
 
 <template>
   <div
-    :class="['min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br transition-all duration-700', themeClasses]"
+    :class="['min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden transition-all duration-700', themeClasses]"
   >
-    <!-- Background Decor -->
-    <div :class="['absolute -top-24 -left-24 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob transition-colors duration-700', blobTheme1]"></div>
-    <div :class="['absolute top-1/4 -right-24 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000 transition-colors duration-700', blobTheme2]"></div>
-    <div :class="['absolute -bottom-24 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000 transition-colors duration-700', blobTheme3]"></div>
 
     <div class="absolute top-0 left-0 w-full z-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -119,7 +113,7 @@ const handleLogin = async () => {
 
           <router-link
             to="/"
-            class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 bg-white/50 px-4 py-2 rounded-full backdrop-blur-sm border border-white/60 transition-colors"
+            class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
             &larr; Kembali ke Beranda
           </router-link>
@@ -140,7 +134,7 @@ const handleLogin = async () => {
 
 
       <div
-        class="bg-white/80 backdrop-blur-xl py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-white/50"
+        class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200"
       >
         <form class="space-y-6" @submit.prevent="handleLogin">
           <div>
@@ -154,7 +148,7 @@ const handleLogin = async () => {
                 name="email"
                 type="email"
                 required
-                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 sm:text-sm transition-all duration-200 bg-white/50"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
           </div>
@@ -173,7 +167,7 @@ const handleLogin = async () => {
                 name="password"
                 type="password"
                 required
-                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 sm:text-sm transition-all duration-200 bg-white/50"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
           </div>
@@ -182,7 +176,7 @@ const handleLogin = async () => {
             <button
               type="submit"
               :disabled="isLoading"
-              :class="['w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0', buttonTheme]"
+              :class="['w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200', buttonTheme]"
             >
               {{ isLoading ? "Memproses..." : "Masuk Sekarang" }}
             </button>
