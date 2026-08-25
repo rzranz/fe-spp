@@ -11,6 +11,12 @@ const router = createRouter({
       meta: { hideNavbar: true, guestOnly: true },
     },
     {
+      path: "/panduan",
+      name: "guide",
+      component: () => import("../views/GuideView.vue"),
+      meta: { hideNavbar: true, guestOnly: true },
+    },
+    {
       path: "/login",
       name: "login",
       component: () => import("../views/auth/Login.vue"),

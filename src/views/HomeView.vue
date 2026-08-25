@@ -22,10 +22,20 @@ const goToLogin = (role) => {
             <span class="text-xl font-extrabold text-slate-800 tracking-tight">RA. Darul Fikri</span>
           </div>
           
-          <div>
-            <button @click="goToLogin('admin')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-5 py-2.5 rounded-lg transition-colors border border-indigo-200">
+          <div class="flex items-center gap-4">
+            <button @click="$router.push('/panduan')" class="text-slate-600 hover:text-indigo-600 font-semibold transition-colors hidden sm:block">
+              Panduan Penggunaan
+            </button>
+            <button @click="goToLogin('admin')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-5 py-2.5 rounded-lg transition-colors border border-indigo-200 hidden sm:block">
               Portal Admin
             </button>
+            
+            <!-- Mobile Menu Button -->
+            <div class="sm:hidden flex items-center gap-2">
+               <button @click="$router.push('/panduan')" class="text-sm font-semibold text-indigo-600 px-3 py-1.5 border border-indigo-200 rounded-lg">
+                Panduan
+               </button>
+            </div>
           </div>
         </div>
       </div>
