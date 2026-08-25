@@ -148,10 +148,10 @@ onMounted(() => {
 
     <!-- Modal QRIS Formal (Invoice Style) -->
     <div v-if="isQrisModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-xl w-full max-w-sm shadow-2xl overflow-hidden border border-gray-200">
+      <div class="bg-white rounded-xl w-full max-w-sm shadow-2xl flex flex-col max-h-[90vh] border border-gray-200">
         
         <!-- Header Invoice -->
-        <div class="border-b border-gray-200 bg-gray-50 px-6 py-5 flex items-center gap-4">
+        <div class="border-b border-gray-200 bg-gray-50 px-6 py-5 flex items-center gap-4 shrink-0">
           <div class="h-12 w-12 bg-white rounded-md p-1 border border-gray-200 shadow-sm flex-shrink-0">
             <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
           </div>
@@ -161,8 +161,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Detail Tagihan (Formal Mono) -->
-        <div class="px-6 py-5" v-if="studentStore.qrisData?.feeDetail">
+        <!-- Detail Tagihan (Scrollable) -->
+        <div class="px-6 py-5 overflow-y-auto flex-1" v-if="studentStore.qrisData?.feeDetail">
           <div class="space-y-3 mb-6">
             <div>
               <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Kepada</p>
@@ -207,21 +207,21 @@ onMounted(() => {
               </div>
             </div>
             
-            <button @click="downloadQR" class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 sm:hidden">
+            <button @click="downloadQR" class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Simpan QR ke Galeri
             </button>
             
-            <p class="mt-4 text-xs text-center text-gray-500 hidden sm:block">
+            <p class="mt-4 text-xs text-center text-gray-500">
               Buka aplikasi M-Banking atau e-Wallet pilihan Anda, lalu scan QR Code di atas.
             </p>
           </div>
         </div>
 
         <!-- Footer -->
-        <div class="border-t border-gray-200 bg-gray-50 px-6 py-4">
+        <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 shrink-0">
           <button
             @click="closeQrisModal"
             class="w-full py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 transition-colors"
