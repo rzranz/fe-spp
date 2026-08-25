@@ -58,7 +58,7 @@ const goToLogin = (role) => {
         <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
           <div class="w-full md:w-1/2 order-2 md:order-1">
             <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
-              <div class="absolute -top-6 -left-6 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">1</div>
+              <div class="absolute -top-6 left-1/2 -translate-x-1/2 md:-left-6 md:translate-x-0 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">1</div>
               <h3 class="text-2xl font-bold text-slate-800 mb-4">Masuk ke Portal Wali Murid</h3>
               <p class="text-slate-600 leading-relaxed mb-6">
                 Untuk memulai, silakan masuk ke dalam sistem menggunakan kredensial yang telah diberikan oleh pihak sekolah.
@@ -95,7 +95,7 @@ const goToLogin = (role) => {
           </div>
           <div class="w-full md:w-1/2">
             <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
-              <div class="absolute -top-6 -right-6 md:-left-6 w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">2</div>
+              <div class="absolute -top-6 left-1/2 -translate-x-1/2 md:-left-6 md:translate-x-0 w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">2</div>
               <h3 class="text-2xl font-bold text-slate-800 mb-4">Cek Tagihan Pembayaran</h3>
               <p class="text-slate-600 leading-relaxed mb-6">
                 Setelah berhasil masuk, Anda akan diarahkan ke halaman Dashboard (Beranda). Di sana Anda dapat melihat informasi tagihan.
@@ -118,10 +118,10 @@ const goToLogin = (role) => {
         <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
           <div class="w-full md:w-1/2 order-2 md:order-1">
             <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative">
-              <div class="absolute -top-6 -left-6 w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">3</div>
+              <div class="absolute -top-6 left-1/2 -translate-x-1/2 md:-left-6 md:translate-x-0 w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg border-4 border-slate-50">3</div>
               <h3 class="text-2xl font-bold text-slate-800 mb-4">Lakukan Pembayaran</h3>
               <p class="text-slate-600 leading-relaxed mb-6">
-                Pilih tagihan yang ingin dibayar, lalu ikuti proses pembayaran yang aman melalui Midtrans.
+                Pilih tagihan yang ingin dibayar, lalu ikuti proses pembayaran yang aman melalui QRIS Pakasir.
               </p>
               <ul class="space-y-3 text-slate-600">
                 <li class="flex items-start gap-3">
@@ -130,7 +130,7 @@ const goToLogin = (role) => {
                 </li>
                 <li class="flex items-start gap-3">
                   <svg class="w-6 h-6 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                  <span>Pilih metode pembayaran (QRIS, Transfer Bank/Virtual Account, GoPay, atau Minimarket).</span>
+                  <span>Selesaikan pembayaran menggunakan kode <strong>QRIS Pakasir</strong> yang tampil pada layar.</span>
                 </li>
                 <li class="flex items-start gap-3">
                   <svg class="w-6 h-6 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>

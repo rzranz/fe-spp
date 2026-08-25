@@ -4,7 +4,7 @@ defineProps({
   isLoading: { type: Boolean, required: true }
 });
 
-const emit = defineEmits(["delete"]);
+const emit = defineEmits(["delete", "send-credentials"]);
 </script>
 
 <template>
@@ -48,6 +48,9 @@ const emit = defineEmits(["delete"]);
                   </span>
                 </td>
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-3">
+                  <button @click="emit('send-credentials', student.id, student.name)" class="text-green-600 hover:text-green-900" title="Kirim Akun WA">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  </button>
                   <RouterLink :to="{ name: 'students.edit', params: { id: student.id } }" class="text-indigo-600 hover:text-indigo-900">Edit</RouterLink>
                   <button @click="emit('delete', student.id, student.name)" class="text-red-600 hover:text-red-900">Hapus</button>
                 </td>

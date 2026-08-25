@@ -107,6 +107,28 @@ const handleDelete = (id, name) => {
   });
 };
 
+const handleSendCredentials = (id, name) => {
+  Swal.fire({
+    title: "Kirim Ulang Kredensial?",
+    text: `Kirim kredensial login via WA ke nomor ortu dari "${name}"? Ini akan mereset password siswa menjadi 'darulfikri123'.`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#10b981",
+    confirmButtonText: "Ya, Kirim!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        const response = await studentStore.sendCredentials(id);
+        Swal.fire("Terkirim!", response.message, "success");
+      } catch (error) {
+        const msg = error.response?.data?.message || "Terjadi kesalahan saat mengirim.";
+        Swal.fire("Gagal!", msg, "error");
+      }
+    }
+  });
+};
+
 onMounted(() => {
   fetchStudents();
   fetchClassrooms();
@@ -151,6 +173,7 @@ onMounted(() => {
       :students="studentStore.students" 
       :isLoading="studentStore.isLoading" 
       @delete="handleDelete" 
+      @send-credentials="handleSendCredentials"
     />
 
     <Pagination 

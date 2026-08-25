@@ -22,20 +22,13 @@ const goToLogin = (role) => {
             <span class="text-xl font-extrabold text-slate-800 tracking-tight">RA. Darul Fikri</span>
           </div>
           
-          <div class="flex items-center gap-4">
-            <button @click="$router.push('/panduan')" class="text-slate-600 hover:text-indigo-600 font-semibold transition-colors hidden sm:block">
-              Panduan Penggunaan
+          <div class="flex items-center gap-2 sm:gap-4">
+            <button @click="$router.push('/panduan')" class="text-sm sm:text-base text-slate-600 hover:text-indigo-600 font-semibold transition-colors">
+              Panduan
             </button>
-            <button @click="goToLogin('admin')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-5 py-2.5 rounded-lg transition-colors border border-indigo-200 hidden sm:block">
+            <button @click="goToLogin('admin')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg transition-colors border border-indigo-200 text-sm sm:text-base">
               Portal Admin
             </button>
-            
-            <!-- Mobile Menu Button -->
-            <div class="sm:hidden flex items-center gap-2">
-               <button @click="$router.push('/panduan')" class="text-sm font-semibold text-indigo-600 px-3 py-1.5 border border-indigo-200 rounded-lg">
-                Panduan
-               </button>
-            </div>
           </div>
         </div>
       </div>
@@ -50,7 +43,7 @@ const goToLogin = (role) => {
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            Sistem Pembayaran Terintegrasi Midtrans
+            Sistem Pembayaran Terintegrasi QRIS Pakasir
           </div>
           
           <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight">
@@ -59,7 +52,7 @@ const goToLogin = (role) => {
           </h1>
           
           <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-            Portal resmi administrasi keuangan RA. Darul Fikri. Cek tagihan, lakukan pembayaran via QRIS, Virtual Account, atau Minimarket, dan pantau riwayat pelunasan secara real-time.
+            Portal resmi administrasi keuangan RA. Darul Fikri. Cek tagihan, lakukan pembayaran via QRIS Pakasir, dan pantau riwayat pelunasan secara real-time.
           </p>
           
           <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -88,7 +81,7 @@ const goToLogin = (role) => {
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
               </div>
               <h3 class="font-bold text-slate-800 text-lg mb-2">Multi Pembayaran</h3>
-              <p class="text-slate-500 text-sm flex-grow">Dukung metode bayar modern: Bank Transfer, QRIS, e-Wallet, & Minimarket.</p>
+              <p class="text-slate-500 text-sm flex-grow">Lakukan pembayaran dengan mudah dan praktis menggunakan scan kode QRIS Pakasir.</p>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 transform transition duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col h-full">
