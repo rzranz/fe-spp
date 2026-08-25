@@ -74,7 +74,7 @@ const goToLogin = (role) => {
                 </li>
                 <li class="flex items-start gap-3">
                   <svg class="w-6 h-6 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                  <span>Masukkan <strong>Password</strong> bawaan yang diberikan oleh admin sekolah (biasanya default: "password").</span>
+                  <span>Masukkan <strong>Password</strong> bawaan yang diberikan oleh admin sekolah (biasanya default: "darulfikri123").</span>
                 </li>
               </ul>
             </div>

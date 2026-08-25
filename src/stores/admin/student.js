@@ -72,6 +72,14 @@ export const useAdminStudentStore = defineStore('adminStudent', {
       } catch (error) {
         throw error;
       }
+    },
+    async sendMassCredentials() {
+      try {
+        const response = await Api.post(`/admin/students/send-mass-credentials`);
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
     }
   }
 });

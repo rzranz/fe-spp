@@ -129,6 +129,28 @@ const handleSendCredentials = (id, name) => {
   });
 };
 
+const handleMassSendCredentials = () => {
+  Swal.fire({
+    title: "Kirim Akun Massal?",
+    text: "Ini akan mengirimkan pengingat kredensial akun ke seluruh siswa aktif yang memiliki nomor WA. Pesan ini bersifat umum (tidak me-reset password). Proses ini memakan waktu antrean. Lanjutkan?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#10b981",
+    confirmButtonText: "Ya, Kirim ke Semua!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        Swal.fire({ title: 'Memproses massal...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        const response = await studentStore.sendMassCredentials();
+        Swal.fire("Terkirim ke Antrean!", response.message, "success");
+      } catch (error) {
+        const msg = error.response?.data?.message || "Terjadi kesalahan saat mengirim masal.";
+        Swal.fire("Gagal!", msg, "error");
+      }
+    }
+  });
+};
+
 onMounted(() => {
   fetchStudents();
   fetchClassrooms();
@@ -142,7 +164,10 @@ onMounted(() => {
         <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Data Siswa</h2>
         <p class="mt-1 text-sm text-gray-500">Daftar seluruh siswa aktif dan alumni Darul Fikri.</p>
       </div>
-      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex sm:gap-3">
+      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex sm:gap-3 flex-wrap">
+        <button @click="handleMassSendCredentials" class="block w-full sm:w-auto rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 mb-3 sm:mb-0">
+          Kirim Akun Massal
+        </button>
         <button @click="showImportModal = true" class="block w-full sm:w-auto rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 mb-3 sm:mb-0">
           Import CSV
         </button>
