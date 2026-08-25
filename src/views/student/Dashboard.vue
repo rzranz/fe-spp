@@ -212,7 +212,7 @@ onMounted(() => fetchMyBills());
           <div class="flex flex-col items-center">
             <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Scan QRIS untuk Membayar</p>
             <div class="bg-white p-2 border border-gray-200 rounded-lg shadow-sm qris-wrapper relative group">
-              <QrcodeVue :value="studentStore.qrisData.string" :size="200" level="M" />
+              <QrcodeVue :value="studentStore.qrisData.string" :size="200" level="M" :margin="3" background="#ffffff" />
               <!-- Hover Overlay with Download Button -->
               <div class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg backdrop-blur-sm">
                 <button @click="downloadQR" class="bg-white text-indigo-700 font-semibold py-1.5 px-4 rounded-full shadow-lg text-sm flex items-center gap-2 hover:bg-gray-10 transition-transform transform hover:scale-105">
