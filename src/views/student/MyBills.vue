@@ -48,6 +48,21 @@ const closeQrisModal = () => {
   fetchMyBills();
 };
 
+const downloadQR = () => {
+  const canvas = document.querySelector('.qris-wrapper canvas');
+  if (canvas) {
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `QRIS-${studentStore.qrisData?.invoice || 'Pembayaran'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    Swal.fire("Gagal", "QR Code belum siap untuk diunduh.", "error");
+  }
+};
+
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
 
 onMounted(() => {
@@ -179,10 +194,27 @@ onMounted(() => {
           <!-- Area QR Code -->
           <div class="flex flex-col items-center">
             <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Scan QRIS untuk Membayar</p>
-            <div class="bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
-              <QrcodeVue :value="studentStore.qrisData.string" :size="180" level="M" />
+            <div class="bg-white p-2 border border-gray-200 rounded-lg shadow-sm qris-wrapper relative group">
+              <QrcodeVue :value="studentStore.qrisData.string" :size="200" level="M" />
+              <!-- Hover Overlay with Download Button -->
+              <div class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg backdrop-blur-sm">
+                <button @click="downloadQR" class="bg-white text-indigo-700 font-semibold py-1.5 px-4 rounded-full shadow-lg text-sm flex items-center gap-2 hover:bg-gray-10 transition-transform transform hover:scale-105">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Unduh QR
+                </button>
+              </div>
             </div>
-            <p class="mt-4 text-xs text-center text-gray-500">
+            
+            <button @click="downloadQR" class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 sm:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Simpan QR ke Galeri
+            </button>
+            
+            <p class="mt-4 text-xs text-center text-gray-500 hidden sm:block">
               Buka aplikasi M-Banking atau e-Wallet pilihan Anda, lalu scan QR Code di atas.
             </p>
           </div>
