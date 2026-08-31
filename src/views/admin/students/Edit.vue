@@ -57,6 +57,16 @@ onMounted(() => {
 })
 
 const handleUpdate = async () => {
+  if (!form.value.nis || !form.value.name || !form.value.class_id || !form.value.parent_name || !form.value.phone_number || !form.value.address) {
+    Swal.fire({
+      icon: "warning",
+      title: "Data Tidak Lengkap",
+      text: "Harap lengkapi semua field (kecuali password) sebelum menyimpan.",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
   isLoading.value = true
   try {
     await studentStore.updateStudent(studentId, form.value)
@@ -94,17 +104,17 @@ const handleUpdate = async () => {
         
         <div>
           <label class="block text-sm font-medium text-gray-700">NIS</label>
-          <input v-model="form.nis" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <input v-model="form.nis" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-          <input v-model="form.name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <input v-model="form.name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Kelas</label>
-          <select v-model="form.class_id" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <select v-model="form.class_id" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             <option value="" disabled>-- Pilih Kelas --</option>
             <option v-for="cls in classroomStore.classrooms" :key="cls.id" :value="cls.id">
               {{ cls.name }}
@@ -119,17 +129,17 @@ const handleUpdate = async () => {
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Nama Orang Tua/Wali</label>
-          <input v-model="form.parent_name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <input v-model="form.parent_name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700">Nomor WhatsApp</label>
-          <input v-model="form.phone_number" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <input v-model="form.phone_number" type="text" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
 
         <div class="sm:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Alamat Lengkap</label>
-          <textarea v-model="form.address" rows="3" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea>
+          <textarea v-model="form.address" rows="3" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
         </div>
 
         <div class="sm:col-span-2 flex justify-end">

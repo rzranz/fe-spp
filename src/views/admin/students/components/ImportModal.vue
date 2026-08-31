@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import Api from "../../../../api/axios"; // Path to axios instance
+import Swal from "sweetalert2";
 
 const props = defineProps({
   show: Boolean,
@@ -17,7 +18,12 @@ const handleFileChange = (e) => {
   if (selectedFile) {
     // Basic validation for csv/excel
     if (!selectedFile.name.match(/\.(csv|xls|xlsx)$/i)) {
-      alert("Harap pilih file Excel atau CSV yang valid.");
+      Swal.fire({
+        icon: "warning",
+        title: "Format Tidak Sesuai",
+        text: "Harap pilih file Excel atau CSV yang valid.",
+        confirmButtonColor: "#4f46e5"
+      });
       fileInput.value.value = "";
       file.value = null;
       return;
@@ -33,7 +39,12 @@ const handleDrop = (e) => {
     if (droppedFile.name.match(/\.(csv|xls|xlsx)$/i)) {
       file.value = droppedFile;
     } else {
-      alert("Harap pilih file Excel atau CSV yang valid.");
+      Swal.fire({
+        icon: "warning",
+        title: "Format Tidak Sesuai",
+        text: "Harap pilih file Excel atau CSV yang valid.",
+        confirmButtonColor: "#4f46e5"
+      });
     }
   }
 };
@@ -57,13 +68,23 @@ const downloadTemplate = async () => {
     document.body.removeChild(link);
   } catch (error) {
     console.error("Gagal mendownload template", error);
-    alert("Gagal mendownload template. Silakan coba lagi.");
+    Swal.fire({
+      icon: "error",
+      title: "Gagal",
+      text: "Gagal mendownload template. Silakan coba lagi.",
+      confirmButtonColor: "#4f46e5"
+    });
   }
 };
 
 const submit = () => {
   if (!file.value) {
-    alert("Pilih file terlebih dahulu!");
+    Swal.fire({
+      icon: "warning",
+      title: "File Kosong",
+      text: "Pilih file terlebih dahulu!",
+      confirmButtonColor: "#4f46e5"
+    });
     return;
   }
   emit("submit", file.value);

@@ -28,6 +28,16 @@ const form = reactive({
 });
 
 const handleLogin = async () => {
+  if (!form.email || !form.password) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Data Kosong",
+      text: "Harap isi Email/NISN dan Password terlebih dahulu sebelum masuk.",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
   isLoading.value = true;
 
   try {
@@ -147,7 +157,6 @@ const handleLogin = async () => {
                 v-model="form.email"
                 name="email"
                 :type="activeRole === 'admin' ? 'email' : 'text'"
-                required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
@@ -166,7 +175,6 @@ const handleLogin = async () => {
                 v-model="form.password"
                 name="password"
                 type="password"
-                required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>

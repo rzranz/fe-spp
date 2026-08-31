@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, watch, ref } from "vue";
 import Api from "../../../../api/axios";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   show: Boolean,
@@ -35,7 +36,12 @@ watch(() => props.show, (val) => {
 
 const submit = () => {
   if (!form.nis || !form.name || !form.class_id || !form.parent_name || !form.phone_number || !form.address || !form.password) {
-    alert("Harap lengkapi semua field yang wajib diisi!");
+    Swal.fire({
+      icon: "warning",
+      title: "Data Tidak Lengkap",
+      text: "Harap lengkapi semua field yang wajib diisi!",
+      confirmButtonColor: "#4f46e5",
+    });
     return;
   }
   emit("submit", form);
